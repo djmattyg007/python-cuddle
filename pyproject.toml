@@ -23,7 +23,7 @@ authors = ["Matthew Gamble <git@matthewgamble.net>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "3.9"
+python = "^3.9"
 tatsu = "^5.6.1"
 regex = "^2021.8.28"
 
