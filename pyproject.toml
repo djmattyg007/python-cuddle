@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 target-version = ["py39"]
 line-length = 100
@@ -43,6 +47,18 @@ flake8-eradicate = "^1.1.0"
 flake8-breakpoint = "^1.1.0"
 flake8-builtins = "^1.5.3"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.mypy]
+check_untyped_defs = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+
+[[tool.mypy.overrides]]
+module = [
+    "regex",
+    "tatsu",
+    "tatsu.*",
+]
+ignore_missing_imports = true
