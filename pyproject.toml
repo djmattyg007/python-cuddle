@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "cuddle"
+version = "0.1.0"
+description = "A Python library for the KDL Document Language."
+authors = ["Matthew Gamble <git@matthewgamble.net>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "3.9"
+tatsu = "^5.6.1"
+regex = "^2021.8.28"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+black = "^21.9b0"
+isort = "^5.9.3"
+flake8 = "^3.9.2"
+flake8-annotations-complexity = "^0.0.6"
+flake8-bugbear = "^21.9.1"
+flake8-black = "^0.2.3"
+flake8-isort = "^4.0.0"
+pep8-naming = "^0.12.1"
+flake8-pytest-style = "^1.5.0"
+flake8-requirements = "^1.5.1"
+flake8-expression-complexity = "^0.0.9"
+flake8-comprehensions = "^3.6.1"
+check-manifest = "^0.46"
+invoke = "^1.6.0"
+pytest-cov = "^2.12.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

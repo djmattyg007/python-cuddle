@@ -1,21 +1,28 @@
-# kdl-py
+# python-cuddle
 
 A Python library for the [KDL Document Language](https://github.com/kdl-org/kdl).
 
 ## Install
 
-    pip install kdl-py
+    pip install cuddle
 
-kdl-py is fully Python 2.7 and Python 3 friendly.
+Cuddle supports Python 3.9 and above. 
 
 ## Usage
 
 ```py
-from kdl import parse, Document, Node
+from cuddle import parse, Document, Node
 print(parse('''// Nodes can be separated into multiple lines
 title \
   "Some title"
 
+// Nested nodes are fully supported
+contents {
+  section "First section" {
+    paragraph "This is the first paragraph"
+    paragraph "This is the second paragraph"
+  }
+}
 
 // Files must be utf8 encoded!
 smile "😁"

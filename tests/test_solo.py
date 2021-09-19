@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 if sys.version_info.major == 3:
 	unicode = str
 
-from kdl import parse, Symbol
+from cuddle import parse, Symbol
+
 
 def test_empty():
 	doc = parse('')

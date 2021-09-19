@@ -1,8 +1,8 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from kdl import parse
+from cuddle import parse
+
 
 def test_from_file():
 	with open('complex.kdl', 'r') as fp:
