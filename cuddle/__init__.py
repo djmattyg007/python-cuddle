@@ -1,3 +1,4 @@
-from .parser import parse, Document, Node, Symbol
+from .parser import Document, Node, Symbol, parse
+
 
 __all__ = "parse", "Document", "Node", "Symbol"

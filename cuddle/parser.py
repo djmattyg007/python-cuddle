@@ -39,9 +39,7 @@ def format_string(val: str) -> str:
     if "\\" in val and '"' not in val:
         return 'r#"%s"#' % val
 
-    inner = "".join(
-        "\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val
-    )
+    inner = "".join("\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val)
     return f'"{inner}"'
 
 
@@ -59,12 +57,15 @@ def format_value(val) -> str:
 
 
 class Document(list):
-    def __init__(
-        self, document=None, *, preserve_property_order=False, symbols_as_strings=False
-    ):
+    def __init__(self, document=None, *, preserve_property_order=False, symbols_as_strings=False):
         list.__init__(self)
         if document is not None:
-            parse(document, preserve_property_order=preserve_property_order, symbols_as_strings=symbols_as_strings, dlist=self)
+            parse(
+                document,
+                preserve_property_order=preserve_property_order,
+                symbols_as_strings=symbols_as_strings,
+                dlist=self,
+            )
 
     def __str__(self):
         return "\n".join(map(str, self))
@@ -144,9 +145,7 @@ class Symbol:
         return ":" + self.value
 
     def __eq__(self, right) -> bool:
-        return (
-            isinstance(right, Symbol) and right.value == self.value
-        ) or self.value == right
+        return (isinstance(right, Symbol) and right.value == self.value) or self.value == right
 
     def __ne__(self, right) -> bool:
         return not (self == right)
@@ -157,7 +156,14 @@ class ParserError(Exception):
 
 
 class Parser:
-    def __init__(self, document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False, dlist: Optional[Document] = None):
+    def __init__(
+        self,
+        document,
+        *,
+        preserve_property_order: bool = False,
+        symbols_as_strings: bool = False,
+        dlist: Optional[Document] = None,
+    ):
         self.preserve_property_order = preserve_property_order
         self.symbols_as_strings = symbols_as_strings
 
@@ -175,9 +181,7 @@ class Parser:
 
     def parse_nodes(self, ast):
         if ast[0] == [None] or (
-            isinstance(ast[0], list)
-            and len(ast[0]) > 0
-            and isinstance(ast[0][0], str)
+            isinstance(ast[0], list) and len(ast[0]) > 0 and isinstance(ast[0][0], str)
         ):
             # TODO: Figure out why empty documents are so strangely handled
             return []
@@ -267,5 +271,10 @@ class Parser:
 def parse(
     document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False, dlist=None
 ):
-    parser = Parser(document, preserve_property_order=preserve_property_order, symbols_as_strings=symbols_as_strings, dlist=dlist)
+    parser = Parser(
+        document,
+        preserve_property_order=preserve_property_order,
+        symbols_as_strings=symbols_as_strings,
+        dlist=dlist,
+    )
     return parser.document

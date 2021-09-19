@@ -14,8 +14,8 @@ else:
 
 @task
 def reformat(c):
-    c.run("isort cuddle tests tasks.py", pty=pty)
-    c.run("black cuddle tests tasks.py", pty=pty)
+    c.run("isort --skip grammar.py cuddle tests tasks.py", pty=pty)
+    c.run("black --exclude grammar.py cuddle tests tasks.py", pty=pty)
 
 
 @task

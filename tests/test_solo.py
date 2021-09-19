@@ -1,4 +1,4 @@
-from cuddle import parse, Symbol
+from cuddle import Symbol, parse
 
 
 def test_empty():
@@ -298,16 +298,12 @@ def test_short_identifier():
 def test_messy_identifiers():
     assert str(parse("struct :Mod")) == "struct :Mod"
     assert str(
-        parse("stringref<uint32>[:numFiles] :Files")
-        == "stringref<uint32>[:numFiles] :Files"
+        parse("stringref<uint32>[:numFiles] :Files") == "stringref<uint32>[:numFiles] :Files"
     )
     assert str(
-        parse("Placeable[:numPlaceables] :Placeables")
-        == "Placeable[:numPlaceables] :Placeables"
+        parse("Placeable[:numPlaceables] :Placeables") == "Placeable[:numPlaceables] :Placeables"
     )
-    assert str(
-        parse("foo :obj:stringTable[:index...]") == "foo :obj:stringTable[:index...]"
-    )
+    assert str(parse("foo :obj:stringTable[:index...]") == "foo :obj:stringTable[:index...]")
 
 
 def test_empty_children():

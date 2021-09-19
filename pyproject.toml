@@ -1,3 +1,16 @@
+[tool.black]
+target-version = ["py39"]
+line-length = 100
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100
+known_tests = "tests"
+sections = "FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,TESTS,LOCALFOLDER"
+lines_after_imports = 2
+lines_between_sections = 1
+
 [tool.poetry]
 name = "cuddle"
 version = "0.1.0"
