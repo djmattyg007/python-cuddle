@@ -168,9 +168,9 @@ def test_bare_deep_raw_string_symbol():
 
 
 def test_bare_plain_symbol():
-    assert str(parse("bare :foo") == "bare :foo")
-    assert str(parse('bare :"foo"') == "bare :foo")
-    assert str(parse('bare :r#"foo"#') == "bare :foo")
+    assert str(parse("bare :foo")) == "bare :foo\n"
+    assert str(parse('bare :"foo"')) == "bare :foo\n"
+    assert str(parse('bare :r#"foo"#')) == "bare :foo\n"
 
 
 def test_symbol_comparison():
@@ -294,18 +294,14 @@ def test_unicode():
 
 
 def test_short_identifier():
-    assert str(parse("T") == "T")
+    assert str(parse("T")) == "T\n"
 
 
 def test_messy_identifiers():
     assert str(parse("struct :Mod")) == "struct :Mod\n"
-    assert str(
-        parse("stringref<uint32>[:numFiles] :Files") == "stringref<uint32>[:numFiles] :Files"
-    )
-    assert str(
-        parse("Placeable[:numPlaceables] :Placeables") == "Placeable[:numPlaceables] :Placeables"
-    )
-    assert str(parse("foo :obj:stringTable[:index...]") == "foo :obj:stringTable[:index...]")
+    assert str(parse("stringref<uint32>[:numFiles] :Files")) == "stringref<uint32>[:numFiles] :Files\n"
+    assert str(parse("Placeable[:numPlaceables] :Placeables")) == "Placeable[:numPlaceables] :Placeables\n"
+    assert str(parse("foo :obj:stringTable[:index...]")) == "foo :obj:stringTable[:index...]\n"
 
 
 def test_empty_children():
