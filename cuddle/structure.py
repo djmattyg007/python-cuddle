@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, Union
 
 
 class Symbol:
@@ -56,10 +56,10 @@ class Node:
             for child in self.children:
                 yield child
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         return self.properties[name]
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: Union[int, str]):
         if isinstance(name, int):
             return self.arguments[name]
         else:

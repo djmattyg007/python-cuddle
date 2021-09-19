@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Any, Iterable
 
 import regex
 
@@ -21,14 +21,14 @@ def format_string(val: str) -> str:
     return f'"{inner}"'
 
 
-def format_identifier(ident):
+def format_identifier(ident: str) -> str:
     if ident_re.match(ident):
         return ident
     else:
         return format_string(ident)
 
 
-def format_value(val) -> str:
+def format_value(val: Any) -> str:
     if isinstance(val, Symbol):
         return ":" + format_identifier(val.value)
     elif isinstance(val, str):
