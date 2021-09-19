@@ -39,6 +39,9 @@ flake8-expression-complexity = "^0.0.9"
 flake8-comprehensions = "^3.6.1"
 invoke = "^1.6.0"
 pytest-cov = "^2.12.1"
+flake8-eradicate = "^1.1.0"
+flake8-breakpoint = "^1.1.0"
+flake8-builtins = "^1.5.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

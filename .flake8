@@ -1,0 +1,37 @@
+[flake8]
+exclude = build, docs/**, grammar.py
+max-line-length = 100
+select =
+    # Regular flake8 rules, plus flake8-comprehensions (C4), plus flake8-eradicate (E800)
+    C, E, F, W
+    # flake8-builtins
+    A
+    # flake8-bugbear rules, plus flake8-breakpoint (B6)
+    B
+    # flake8-isort, plus flake8-requirements (I9)
+    I
+    # pep8-naming rules
+    N
+    # flake8-pytest-style
+    PT
+    # flake8-expression-complexity
+    ECE
+    # flake8-annotations-complexity
+    TAE
+ignore =
+    # E203: whitespace before ':' (replaced by Black)
+    E203
+    # E501: line too long (replaced by Black)
+    E501
+    # E731: utterly pointless
+    E731
+    # W503: line break before binary operator (not PEP8 compliant)
+    W503
+
+# flake8-pytest-style
+pytest-fixture-no-parentheses = true
+pytest-parametrize-values-type = tuple
+pytest-parametrize-values-row-type = tuple
+
+# flake8-requirements
+known-modules = cuddle
