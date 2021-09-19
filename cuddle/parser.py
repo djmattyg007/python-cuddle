@@ -1,10 +1,13 @@
-from pathlib import Path
-
 from collections import OrderedDict
-from .grammar import KdlParser
-import regex, sys
+from pathlib import Path
+from typing import Optional
 
-model = KdlParser(whitespace="", parseinfo=False)
+import regex
+
+from .grammar import KdlParser
+
+
+ast_parser = KdlParser(whitespace="", parseinfo=False)
 
 named_escapes = {
     "\\": "\\",
@@ -57,11 +60,11 @@ def format_value(val) -> str:
 
 class Document(list):
     def __init__(
-        self, document=None, preserve_property_order=False, symbols_as_strings=False
+        self, document=None, *, preserve_property_order=False, symbols_as_strings=False
     ):
         list.__init__(self)
         if document is not None:
-            parse(document, preserve_property_order, symbols_as_strings, dlist=self)
+            parse(document, preserve_property_order=preserve_property_order, symbols_as_strings=symbols_as_strings, dlist=self)
 
     def __str__(self):
         return "\n".join(map(str, self))
@@ -121,7 +124,7 @@ class Node:
                 yield child
 
     def __getattr__(self, name):
-        return self[name]
+        return self.properties[name]
 
     def __getitem__(self, name):
         if isinstance(name, int):
@@ -154,7 +157,7 @@ class ParserError(Exception):
 
 
 class Parser:
-    def __init__(self, document, preserve_property_order, symbols_as_strings, dlist):
+    def __init__(self, document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False, dlist: Optional[Document] = None):
         self.preserve_property_order = preserve_property_order
         self.symbols_as_strings = symbols_as_strings
 
@@ -165,10 +168,10 @@ class Parser:
 
         if isinstance(document, bytes):
             document = document.decode("utf-8")
-        ast = model.parse(document)
+        ast = ast_parser.parse(document)
 
         self.document = Document() if dlist is None else dlist
-        self.document += self.parse_nodes(ast)
+        self.document.extend(self.parse_nodes(ast))
 
     def parse_nodes(self, ast):
         if ast[0] == [None] or (
@@ -180,18 +183,20 @@ class Parser:
             return []
 
         nodes = map(self.parse_node, ast)
-        return [node for node in nodes if node is not None]
+        return filter(None, nodes)
 
     def parse_node(self, ast):
         if len(ast) == 0 or exists(ast, "commented"):
             return
 
         name = self.parse_identifier(ast["name"])
-        children = props = args = None
+        props = []
+        args = []
+        children = []
         if exists(ast, "props_and_args"):
             props, args = self.parse_props_and_args(ast["props_and_args"])
         if exists(ast, "children") and not exists(ast["children"], "commented"):
-            children = self.parse_nodes(ast["children"]["children"])
+            children = list(self.parse_nodes(ast["children"]["children"]))
         return Node(name, props, args, children)
 
     def parse_identifier(self, ast) -> str:
@@ -260,7 +265,7 @@ class Parser:
 
 
 def parse(
-    document, preserve_property_order=False, symbols_as_strings=False, dlist=None
+    document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False, dlist=None
 ):
-    parser = Parser(document, preserve_property_order, symbols_as_strings, dlist)
+    parser = Parser(document, preserve_property_order=preserve_property_order, symbols_as_strings=symbols_as_strings, dlist=dlist)
     return parser.document
