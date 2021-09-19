@@ -1,9 +1,3 @@
-import os
-import sys
-
-if sys.version_info.major == 3:
-    unicode = str
-
 from cuddle import parse, Symbol
 
 
@@ -282,19 +276,19 @@ def test_unicode_ws():
 
 
 def test_unicode_ident():
-    assert unicode(parse(u"ノード")) == u"ノード"
+    assert str(parse(u"ノード")) == u"ノード"
 
 
 def test_unicode_prop_ident():
-    assert unicode(parse(u"foo お名前=5")) == u"foo お名前=5"
+    assert str(parse(u"foo お名前=5")) == u"foo お名前=5"
 
 
 def test_unicode_string():
-    assert unicode(parse(u'foo "☜(ﾟヮﾟ☜)"')) == u'foo "☜(ﾟヮﾟ☜)"'
+    assert str(parse(u'foo "☜(ﾟヮﾟ☜)"')) == u'foo "☜(ﾟヮﾟ☜)"'
 
 
 def test_unicode():
-    assert unicode(parse(u'ノード　お名前="☜(ﾟヮﾟ☜)"')) == u'ノード お名前="☜(ﾟヮﾟ☜)"'
+    assert str(parse(u'ノード　お名前="☜(ﾟヮﾟ☜)"')) == u'ノード お名前="☜(ﾟヮﾟ☜)"'
 
 
 def test_short_identifier():

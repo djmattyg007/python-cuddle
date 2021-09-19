@@ -1,12 +1,8 @@
-from __future__ import unicode_literals
+from pathlib import Path
 
 from collections import OrderedDict
 from .grammar import KdlParser
 import regex, sys
-
-if sys.version_info.major == 3:
-    unicode = str
-    unichr = chr
 
 model = KdlParser(whitespace="", parseinfo=False)
 
@@ -47,7 +43,7 @@ def formatString(val):
 def formatValue(val):
     if isinstance(val, Symbol):
         return ":" + formatIdentifier(val.value)
-    elif isinstance(val, str) or isinstance(val, unicode):
+    elif isinstance(val, str):
         return formatString(val)
     elif isinstance(val, bool):
         return "true" if val else "false"
@@ -66,7 +62,7 @@ class Document(list):
             parse(document, preserve_property_order, symbols_as_strings, dlist=self)
 
     def __str__(self):
-        return "\n".join(map(unicode, self))
+        return "\n".join(map(str, self))
 
 
 class Node(object):
@@ -150,9 +146,12 @@ class Parser(object):
         self.preserve_property_order = preserve_property_order
         self.symbols_as_strings = symbols_as_strings
 
-        if hasattr(document, "read") and callable(document.read):
+        if isinstance(document, Path):
+            document = document.read_text(encoding="utf-8")
+        elif hasattr(document, "read") and callable(document.read):
             document = document.read()
-        if str is not unicode and isinstance(document, str):
+
+        if isinstance(document, bytes):
             document = document.decode("utf-8")
         ast = model.parse(document)
 
@@ -163,7 +162,7 @@ class Parser(object):
         if ast[0] == [None] or (
             isinstance(ast[0], list)
             and len(ast[0]) > 0
-            and isinstance(ast[0][0], unicode)
+            and isinstance(ast[0][0], str)
         ):
             # TODO: Figure out why empty documents are so strangely handled
             return []
@@ -240,7 +239,7 @@ class Parser(object):
                     if exists(esc, "named"):
                         val += namedEscapes[esc["named"]]
                     else:
-                        val += unichr(int(esc["unichar"], 16))
+                        val += chr(int(esc["unichar"], 16))
             return val
         return ast["rawstring"]
 

@@ -1,15 +1,16 @@
-import os
-import sys
+from pathlib import Path
 
 from cuddle import parse
 
 
+fixtures_path = Path(__file__).parent
+
+
 def test_from_file():
-    with open("complex.kdl", "r") as fp:
-        doc = parse(fp)
-    if sys.version_info.major == 3:
-        with open("complex_formatted.kdl", "r", encoding="utf-8") as fp:
-            assert fp.read() == str(doc)
-    else:
-        with open("complex_formatted.kdl", "r") as fp:
-            assert fp.read().decode("utf-8") == str(doc)
+    before_formatting_file = fixtures_path / "complex.kdl"
+    after_formatting_file = fixtures_path / "complex_formatted.kdl"
+
+    doc = parse(before_formatting_file)
+    formatted_doc = after_formatting_file.read_text()
+
+    assert str(doc) == formatted_doc

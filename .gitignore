@@ -1,3 +1,16 @@
+/build/
+/dist/
 /venv/
 /.venv/
+
+/.mypy_cache/
+/.pytest_cache/
+/.coverage
+
 /.idea/
+
+/htmlcov/
+
+*.egg-info
+*.pyc
+*.pyo
