@@ -6,7 +6,7 @@ import regex, sys
 
 model = KdlParser(whitespace="", parseinfo=False)
 
-namedEscapes = {
+named_escapes = {
     "\\": "\\",
     "/": "/",
     "r": "\r",
@@ -16,7 +16,7 @@ namedEscapes = {
     "b": "\b",
     "f": "\f",
 }
-namedEscapeInverse = {v: k for k, v in namedEscapes.items()}
+named_escape_inverse = {v: k for k, v in named_escapes.items()}
 
 exists = lambda ast, name: ast is not None and name in ast and ast[name] is not None
 
@@ -25,26 +25,26 @@ identRe = regex.compile(
 )
 
 
-def formatIdentifier(ident):
+def format_identifier(ident):
     if identRe.match(ident):
         return ident
     else:
-        return formatString(ident)
+        return format_string(ident)
 
 
-def formatString(val):
+def format_string(val):
     if "\\" in val and '"' not in val:
         return 'r#"%s"#' % val
     return '"%s"' % "".join(
-        "\\" + namedEscapeInverse[c] if c in namedEscapeInverse else c for c in val
+        "\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val
     )
 
 
-def formatValue(val):
+def format_value(val):
     if isinstance(val, Symbol):
-        return ":" + formatIdentifier(val.value)
+        return ":" + format_identifier(val.value)
     elif isinstance(val, str):
-        return formatString(val)
+        return format_string(val)
     elif isinstance(val, bool):
         return "true" if val else "false"
     elif val is None:
@@ -76,13 +76,13 @@ class Node(object):
         return self.format()
 
     def format(self, indent=False):
-        fmt = formatIdentifier(self.name)
+        fmt = format_identifier(self.name)
         if self.properties:
             for k, v in self.properties.items():
-                fmt += " %s=%s" % (formatIdentifier(k), formatValue(v))
+                fmt += " %s=%s" % (format_identifier(k), format_value(v))
         if self.arguments:
             for v in self.arguments:
-                fmt += " " + formatValue(v)
+                fmt += " " + format_value(v)
         if self.children:
             fmt += " {\n"
             for child in self.children:
@@ -156,9 +156,9 @@ class Parser(object):
         ast = model.parse(document)
 
         self.document = Document() if dlist is None else dlist
-        self.document += self.parseNodes(ast)
+        self.document += self.parse_nodes(ast)
 
-    def parseNodes(self, ast):
+    def parse_nodes(self, ast):
         if ast[0] == [None] or (
             isinstance(ast[0], list)
             and len(ast[0]) > 0
@@ -166,40 +166,42 @@ class Parser(object):
         ):
             # TODO: Figure out why empty documents are so strangely handled
             return []
-        nodes = map(self.parseNode, ast)
+
+        nodes = map(self.parse_node, ast)
         return [node for node in nodes if node is not None]
 
-    def parseNode(self, ast):
+    def parse_node(self, ast):
         if len(ast) == 0 or exists(ast, "commented"):
             return
-        name = self.parseIdentifier(ast["name"])
+
+        name = self.parse_identifier(ast["name"])
         children = props = args = None
         if exists(ast, "props_and_args"):
-            props, args = self.parsePropsAndArgs(ast["props_and_args"])
+            props, args = self.parse_props_and_args(ast["props_and_args"])
         if exists(ast, "children") and not exists(ast["children"], "commented"):
-            children = self.parseNodes(ast["children"]["children"])
+            children = self.parse_nodes(ast["children"]["children"])
         return Node(name, props, args, children)
 
-    def parseIdentifier(self, ast):
+    def parse_identifier(self, ast):
         if exists(ast, "bare"):
             return "".join(ast["bare"])
-        return self.parseString(ast["string"])
+        return self.parse_string(ast["string"])
 
-    def parsePropsAndArgs(self, ast):
+    def parse_props_and_args(self, ast):
         props = OrderedDict() if self.preserve_property_order else {}
         args = []
         for elem in ast:
             if exists(elem, "commented"):
                 continue
             if exists(elem, "prop"):
-                props[self.parseIdentifier(elem["prop"]["name"])] = self.parseValue(
+                props[self.parse_identifier(elem["prop"]["name"])] = self.parse_value(
                     elem["prop"]["value"]
                 )
             else:
-                args.append(self.parseValue(elem["value"]))
+                args.append(self.parse_value(elem["value"]))
         return props if len(props) else None, args if len(args) else None
 
-    def parseValue(self, ast):
+    def parse_value(self, ast):
         if exists(ast, "hex"):
             v = ast["hex"].replace("_", "")
             return int(v[0] + v[3:] if v[0] != "0" else v[2:], 16)
@@ -216,9 +218,9 @@ class Parser(object):
             else:
                 return int(v)
         elif exists(ast, "escstring") or exists(ast, "rawstring"):
-            return self.parseString(ast)
+            return self.parse_string(ast)
         elif exists(ast, "symbol"):
-            v = self.parseIdentifier(ast["symbol"])
+            v = self.parse_identifier(ast["symbol"])
             if self.symbols_as_strings:
                 return v
             return Symbol(v)
@@ -228,7 +230,7 @@ class Parser(object):
             return None
         raise "Unknown AST node! Internal failure: %r" % ast
 
-    def parseString(self, ast):
+    def parse_string(self, ast):
         if exists(ast, "escstring"):
             val = ""
             for elem in ast["escstring"]:
@@ -237,7 +239,7 @@ class Parser(object):
                 elif exists(elem, "escape"):
                     esc = elem["escape"]
                     if exists(esc, "named"):
-                        val += namedEscapes[esc["named"]]
+                        val += named_escapes[esc["named"]]
                     else:
                         val += chr(int(esc["unichar"], 16))
             return val
