@@ -210,9 +210,9 @@ def test_children():
     assert (
         str(doc)
         == """bare {
-	foo
-	bar
-	baz
+  foo
+  bar
+  baz
 }"""
     )
 
@@ -228,8 +228,8 @@ def test_commented_child():
     assert (
         str(doc)
         == """bare {
-	foo
-	baz
+  foo
+  baz
 }"""
     )
 

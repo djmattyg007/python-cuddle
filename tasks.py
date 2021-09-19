@@ -24,12 +24,17 @@ def lint(c):
 
 
 @task
-def test(c, onefile=""):
+def test(c, verbose=False, onefile=""):
     pytest_args = ["pytest", "--strict-config", "--cov=cuddle", "--cov-report=term-missing"]
     if in_ci:
         pytest_args.extend(("--cov-report=xml", "--strict-markers"))
     else:
         pytest_args.append("--cov-report=html")
+
+    if verbose:
+        pytest_args.append("-vv")
+    else:
+        pytest_args.append("-v")
 
     if onefile:
         pytest_args.append(shlex.quote(onefile))

@@ -13,4 +13,4 @@ def test_from_file():
     doc = parse(before_formatting_file)
     formatted_doc = after_formatting_file.read_text()
 
-    assert str(doc) == formatted_doc
+    assert str(doc).strip() == formatted_doc.strip()

@@ -98,7 +98,10 @@ class Node:
                 fmt += child.format(indent=True) + "\n"
             fmt += "}"
 
-        return "\n".join("\t" + line for line in fmt.split("\n")) if indent else fmt
+        if not indent:
+            return fmt
+
+        return "\n".join("  " + line for line in fmt.split("\n"))
 
     def __repr__(self) -> str:
         details = [f"name={self.name!r}"]
