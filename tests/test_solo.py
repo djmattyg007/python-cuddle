@@ -122,7 +122,7 @@ def test_bare_true_arg():
     node = doc[0]
     assert node.name == "bare"
     assert len(list(node)) == 1
-    assert node[0] == True
+    assert node[0] is True
     assert str(doc) == "bare true"
 
 
@@ -132,7 +132,7 @@ def test_bare_false_arg():
     node = doc[0]
     assert node.name == "bare"
     assert len(list(node)) == 1
-    assert node[0] == False
+    assert node[0] is False
     assert str(doc) == "bare false"
 
 
@@ -310,6 +310,7 @@ def test_empty_children():
     doc = parse("foo { }")
     assert len(doc[0].children) == 0
     assert str(doc) == "foo"
+
     doc = parse("foo {}")
     assert len(doc[0].children) == 0
     assert str(doc) == "foo"

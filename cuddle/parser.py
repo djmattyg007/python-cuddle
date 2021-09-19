@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Sequence
 
 import regex
 
@@ -76,12 +78,12 @@ class Node:
         self.name = name
         self.properties = properties
         self.arguments = arguments
-        self.children = children
+        self.children: Sequence[Node] = children
 
     def __str__(self) -> str:
-        return self.format()
+        return self.format_node()
 
-    def format(self, *, indent: bool = False) -> str:
+    def format_node(self, *, indent: bool = False) -> str:
         fmt = format_identifier(self.name)
 
         if self.properties:
@@ -95,7 +97,7 @@ class Node:
         if self.children:
             fmt += " {\n"
             for child in self.children:
-                fmt += child.format(indent=True) + "\n"
+                fmt += child.format_node(indent=True) + "\n"
             fmt += "}"
 
         if not indent:
@@ -138,7 +140,7 @@ class Node:
 
 
 class Symbol:
-    def __init__(self, value):
+    def __init__(self, value: str):
         self.value = value
 
     def __repr__(self) -> str:
