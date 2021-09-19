@@ -65,6 +65,9 @@ jobs:
       - name: "Run tests"
         run: "poetry run invoke test"
 
+      - name: "Ensure we can build packages"
+        run: "poetry build"
+
       - name: "Upload coverage data to Codecov"
         if: ${{ matrix.coverage }}
         uses: "codecov/codecov-action@v2"
