@@ -19,8 +19,22 @@ lines_between_sections = 1
 name = "cuddle"
 version = "0.1.0"
 description = "A Python library for the KDL Document Language."
+packages = [
+    { include = "cuddle" },
+]
+readme = "README.md"
+homepage = "https://github.com/djmattyg007/python-cuddle"
+repository = "https://github.com/djmattyg007/python-cuddle"
 authors = ["Matthew Gamble <git@matthewgamble.net>"]
 license = "MIT"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+]
+include = ["cuddle/grammar.tatsu"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -47,6 +61,10 @@ flake8-eradicate = "^1.1.0"
 flake8-breakpoint = "^1.1.0"
 flake8-builtins = "^1.5.3"
 mypy = "^0.910"
+
+[tool.poetry.urls]
+"Source" = "https://github.com/djmattyg007/python-cuddle"
+"Issues" = "https://github.com/djmattyg007/python-cuddle/issues"
 
 [tool.mypy]
 check_untyped_defs = true
