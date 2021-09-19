@@ -9,15 +9,14 @@
 # Any changes you make to it will be overwritten the next time
 # the file is generated.
 
-
-from __future__ import print_function, division, absolute_import, unicode_literals
+from __future__ import annotations
 
 import sys
 
 from tatsu.buffering import Buffer
 from tatsu.parsing import Parser
-from tatsu.parsing import tatsumasu, leftrec, nomemo
-from tatsu.parsing import leftrec, nomemo  # noqa
+from tatsu.parsing import tatsumasu
+from tatsu.parsing import leftrec, nomemo, isname # noqa
 from tatsu.util import re, generic_main  # noqa
 
 
@@ -36,7 +35,7 @@ class KdlBuffer(Buffer):
         namechars='',
         **kwargs
     ):
-        super(KdlBuffer, self).__init__(
+        super().__init__(
             text,
             whitespace=whitespace,
             nameguard=nameguard,
@@ -60,12 +59,12 @@ class KdlParser(Parser):
         parseinfo=True,
         keywords=None,
         namechars='',
-        buffer_class=KdlBuffer,
+        tokenizercls=KdlBuffer,
         **kwargs
     ):
         if keywords is None:
             keywords = KEYWORDS
-        super(KdlParser, self).__init__(
+        super().__init__(
             whitespace=whitespace,
             nameguard=nameguard,
             comments_re=comments_re,
@@ -75,7 +74,7 @@ class KdlParser(Parser):
             parseinfo=parseinfo,
             keywords=keywords,
             namechars=namechars,
-            buffer_class=buffer_class,
+            tokenizercls=tokenizercls,
             **kwargs
         )
 
@@ -138,7 +137,7 @@ class KdlParser(Parser):
                 self._ws_()
             self._closure(block7)
         self._node_terminator_()
-        self.ast._define(
+        self._define(
             ['children', 'commented', 'name'],
             ['props_and_args']
         )
@@ -160,8 +159,11 @@ class KdlParser(Parser):
                 with self._option():
                     self._value_()
                     self.name_last_node('value')
-                self._error('no available options')
-        self.ast._define(
+                self._error(
+                    'expecting one of: '
+                    '<prop> <value>'
+                )
+        self._define(
             ['commented', 'prop', 'value'],
             []
         )
@@ -179,7 +181,7 @@ class KdlParser(Parser):
         self._nodes_()
         self.name_last_node('children')
         self._token('}')
-        self.ast._define(
+        self._define(
             ['children', 'commented'],
             []
         )
@@ -203,7 +205,13 @@ class KdlParser(Parser):
                 def block2():
                     self._ws_()
                 self._positive_closure(block2)
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                "'\\\\' <escline> ([\\t \\u00A0\\u1680\\u2000\\u"
+                '2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007'
+                '\\u2008\\u2009\\u200A\\u202F\\u205F\\u3000]|\\u'
+                'FFEF)+ <ws>'
+            )
 
     @tatsumasu()
     def _node_terminator_(self):  # noqa
@@ -216,7 +224,12 @@ class KdlParser(Parser):
                 self._token(';')
             with self._option():
                 self._check_eof()
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                "'//' <single_line_comment>"
+                '(\\r\\n|[\\r\\n\\u0085\\u000C\\u2028\\u2029])'
+                "<newline> ';'"
+            )
 
     @tatsumasu()
     def _identifier_(self):  # noqa
@@ -227,8 +240,13 @@ class KdlParser(Parser):
             with self._option():
                 self._bare_identifier_()
                 self.name_last_node('bare')
-            self._error('no available options')
-        self.ast._define(
+            self._error(
+                'expecting one of: '
+                '<raw_string> <escaped_string> <string>'
+                '<first_identifier_char>'
+                '<bare_identifier>'
+            )
+        self._define(
             ['bare', 'string'],
             []
         )
@@ -275,7 +293,7 @@ class KdlParser(Parser):
         self._token('=')
         self._value_()
         self.name_last_node('value')
-        self.ast._define(
+        self._define(
             ['name', 'value'],
             []
         )
@@ -293,7 +311,13 @@ class KdlParser(Parser):
                 self._boolean_()
             with self._option():
                 self._null_()
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                "':' <symbol> <hex> <octal> <binary>"
+                '<decimal> <number> <raw_string>'
+                "<escaped_string> <string> 'true' 'false'"
+                "<boolean> 'null'"
+            )
 
     @tatsumasu()
     def _string_(self):  # noqa
@@ -302,7 +326,10 @@ class KdlParser(Parser):
                 self._raw_string_()
             with self._option():
                 self._escaped_string_()
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                '\'r\' <raw_string> \'"\' <escaped_string>'
+            )
 
     @tatsumasu()
     def _escaped_string_(self):  # noqa
@@ -313,7 +340,7 @@ class KdlParser(Parser):
         self._closure(block1)
         self.name_last_node('escstring')
         self._token('"')
-        self.ast._define(
+        self._define(
             ['escstring'],
             []
         )
@@ -328,8 +355,11 @@ class KdlParser(Parser):
             with self._option():
                 self._pattern('[^"]')
                 self.name_last_node('char')
-            self._error('no available options')
-        self.ast._define(
+            self._error(
+                'expecting one of: '
+                '\'\\\\\' [^"]'
+            )
+        self._define(
             ['char', 'escape'],
             []
         )
@@ -345,8 +375,11 @@ class KdlParser(Parser):
                 self._pattern('[0-9a-fA-F]{1,6}')
                 self.name_last_node('unichar')
                 self._token('}')
-            self._error('no available options')
-        self.ast._define(
+            self._error(
+                'expecting one of: '
+                "[\\\\/bfnrt] 'u{'"
+            )
+        self._define(
             ['named', 'unichar'],
             []
         )
@@ -356,7 +389,7 @@ class KdlParser(Parser):
         self._token('r')
         self._raw_string_hash_()
         self.name_last_node('rawstring')
-        self.ast._define(
+        self._define(
             ['rawstring'],
             []
         )
@@ -372,7 +405,10 @@ class KdlParser(Parser):
             with self._option():
                 self._raw_string_quotes_()
                 self.name_last_node('@')
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                '\'#\' \'"\' <raw_string_quotes>'
+            )
 
     @tatsumasu()
     def _raw_string_quotes_(self):  # noqa
@@ -386,7 +422,7 @@ class KdlParser(Parser):
         self._token(':')
         self._identifier_()
         self.name_last_node('symbol')
-        self.ast._define(
+        self._define(
             ['symbol'],
             []
         )
@@ -402,13 +438,20 @@ class KdlParser(Parser):
                 self._binary_()
             with self._option():
                 self._decimal_()
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                '[+\\-]?0x[0-9a-fA-F][0-9a-fA-F_]* <hex>'
+                '[+\\-]?0o[0-7][0-7_]* <octal>'
+                '[+\\-]?0b[01][01_]* <binary> [+\\-]?[0-9]['
+                '0-9_]*(\\.[0-9][0-9_]*)?([eE][+-]?[0-9][0'
+                '-9_]*)? <decimal>'
+            )
 
     @tatsumasu()
     def _decimal_(self):  # noqa
         self._pattern('[+\\-]?[0-9][0-9_]*(\\.[0-9][0-9_]*)?([eE][+-]?[0-9][0-9_]*)?')
         self.name_last_node('decimal')
-        self.ast._define(
+        self._define(
             ['decimal'],
             []
         )
@@ -417,7 +460,7 @@ class KdlParser(Parser):
     def _hex_(self):  # noqa
         self._pattern('[+\\-]?0x[0-9a-fA-F][0-9a-fA-F_]*')
         self.name_last_node('hex')
-        self.ast._define(
+        self._define(
             ['hex'],
             []
         )
@@ -426,7 +469,7 @@ class KdlParser(Parser):
     def _octal_(self):  # noqa
         self._pattern('[+\\-]?0o[0-7][0-7_]*')
         self.name_last_node('octal')
-        self.ast._define(
+        self._define(
             ['octal'],
             []
         )
@@ -435,7 +478,7 @@ class KdlParser(Parser):
     def _binary_(self):  # noqa
         self._pattern('[+\\-]?0b[01][01_]*')
         self.name_last_node('binary')
-        self.ast._define(
+        self._define(
             ['binary'],
             []
         )
@@ -448,9 +491,12 @@ class KdlParser(Parser):
                     self._token('true')
                 with self._option():
                     self._token('false')
-                self._error('no available options')
+                self._error(
+                    'expecting one of: '
+                    "'true' 'false'"
+                )
         self.name_last_node('boolean')
-        self.ast._define(
+        self._define(
             ['boolean'],
             []
         )
@@ -460,7 +506,7 @@ class KdlParser(Parser):
         with self._group():
             self._token('null')
         self.name_last_node('null')
-        self.ast._define(
+        self._define(
             ['null'],
             []
         )
@@ -478,7 +524,10 @@ class KdlParser(Parser):
                     self._single_line_comment_()
                 with self._option():
                     self._newline_()
-                self._error('no available options')
+                self._error(
+                    'expecting one of: '
+                    '<single_line_comment> <newline>'
+                )
 
     @tatsumasu()
     def _linespace_(self):  # noqa
@@ -491,7 +540,14 @@ class KdlParser(Parser):
                 self._ws_()
             with self._option():
                 self._single_line_comment_()
-            self._error('no available options')
+            self._error(
+                'expecting one of: '
+                '(\\r\\n|[\\r\\n\\u0085\\u000C\\u2028\\u2029])'
+                '<newline> ([\\t \\u00A0\\u1680\\u2000\\u2001\\'
+                'u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u200'
+                '8\\u2009\\u200A\\u202F\\u205F\\u3000]|\\uFFEF)'
+                "+ <ws> '//' <single_line_comment>"
+            )
 
     @tatsumasu()
     def _single_line_comment_(self):  # noqa
@@ -510,7 +566,10 @@ class KdlParser(Parser):
                     self._commented_block_()
                 with self._option():
                     self._multi_line_comment_()
-                self._error('no available options')
+                self._error(
+                    'expecting one of: '
+                    '<commented_block> <multi_line_comment>'
+                )
         self._token('*/')
 
     @tatsumasu()
@@ -523,7 +582,10 @@ class KdlParser(Parser):
                     self._pattern('[^\\/]')
                 with self._option():
                     self._pattern('[^*]')
-                self._error('no available options')
+                self._error(
+                    'expecting one of: '
+                    "'*' [^*]"
+                )
         self._closure(block0)
 
     @tatsumasu()
@@ -654,7 +716,12 @@ def main(filename, start=None, **kwargs):
         with open(filename) as f:
             text = f.read()
     parser = KdlParser()
-    return parser.parse(text, rule_name=start, filename=filename, **kwargs)
+    return parser.parse(
+        text,
+        rule_name=start,
+        filename=filename,
+        **kwargs
+    )
 
 
 if __name__ == '__main__':
@@ -662,9 +729,5 @@ if __name__ == '__main__':
     from tatsu.util import asjson
 
     ast = generic_main(main, KdlParser, name='Kdl')
-    print('AST:')
-    print(ast)
-    print()
-    print('JSON:')
-    print(json.dumps(asjson(ast), indent=2))
-    print()
+    data = asjson(ast)
+    print(json.dumps(data, indent=2))
