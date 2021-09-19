@@ -3,9 +3,9 @@ from __future__ import annotations
 from collections import OrderedDict
 from pathlib import Path
 
+from ._escaping import named_escapes
 from .grammar import KdlParser
 from .structure import Document, Node, Symbol
-from ._escaping import named_escapes
 
 
 ast_parser = KdlParser(whitespace="", parseinfo=False)
@@ -47,20 +47,20 @@ class Parser:
             return []
 
         nodes = map(self._parse_node, ast)
-        return filter(None, nodes)
+        return list(filter(None, nodes))
 
     def _parse_node(self, ast):
         if len(ast) == 0 or exists(ast, "commented"):
             return
 
         name = self._parse_identifier(ast["name"])
-        props = []
+        props = OrderedDict() if self.preserve_property_order else {}
         args = []
         children = []
         if exists(ast, "props_and_args"):
             props, args = self.parse_props_and_args(ast["props_and_args"])
         if exists(ast, "children") and not exists(ast["children"], "commented"):
-            children = list(self._parse_nodes(ast["children"]["children"]))
+            children = self._parse_nodes(ast["children"]["children"])
         return Node(name, props, args, children)
 
     def _parse_identifier(self, ast) -> str:
@@ -80,7 +80,7 @@ class Parser:
                 )
             else:
                 args.append(self._parse_value(elem["value"]))
-        return props if len(props) else None, args if len(args) else None
+        return props, args
 
     def _parse_value(self, ast):
         if exists(ast, "hex"):
@@ -128,9 +128,7 @@ class Parser:
         return ast["rawstring"]
 
 
-def parse(
-    document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False
-):
+def parse(document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False):
     parser = Parser(
         preserve_property_order=preserve_property_order,
         symbols_as_strings=symbols_as_strings,

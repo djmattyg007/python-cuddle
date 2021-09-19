@@ -1,13 +1,6 @@
-from typing import Sequence
+from __future__ import annotations
 
-import regex
-
-from ._escaping import named_escape_inverse
-
-
-ident_re = regex.compile(
-    r'^[^\\<{;\[=,"0-9\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029][^\\;=,"\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029]*$'
-)
+from typing import Iterable, Sequence
 
 
 class Symbol:
@@ -28,36 +21,16 @@ class Symbol:
 
 
 class Node:
-    def __init__(self, name, properties, arguments, children):
+    def __init__(self, name: str, properties, arguments, children: Sequence[Node]):
         self.name = name
         self.properties = properties
         self.arguments = arguments
-        self.children: Sequence[Node] = children
+        self.children = children
 
     def __str__(self) -> str:
-        return self.format_node()
+        from .formatter import format_node
 
-    def format_node(self, *, indent: bool = False) -> str:
-        fmt = format_identifier(self.name)
-
-        if self.properties:
-            for k, v in self.properties.items():
-                fmt += " {0}={1}".format(format_identifier(k), format_value(v))
-
-        if self.arguments:
-            for v in self.arguments:
-                fmt += " " + format_value(v)
-
-        if self.children:
-            fmt += " {\n"
-            for child in self.children:
-                fmt += child.format_node(indent=True) + "\n"
-            fmt += "}"
-
-        if not indent:
-            return fmt
-
-        return "\n".join("  " + line for line in fmt.split("\n"))
+        return format_node(self)
 
     def __repr__(self) -> str:
         details = [f"name={self.name!r}"]
@@ -93,40 +66,20 @@ class Node:
             return self.properties[name]
 
 
-class Document(list):
-    def __init__(self, nodes=None):
-        if nodes:
-            super().__init__(nodes)
-        else:
-            super().__init__()
+class Document:
+    def __init__(self, nodes: Sequence[Node]):
+        self.nodes = nodes
 
-    def __str__(self):
-        return "\n".join(map(str, self))
+    def __str__(self) -> str:
+        from .formatter import format_document
 
+        return "".join(format_document(self))
 
-def format_string(val: str) -> str:
-    if "\\" in val and '"' not in val:
-        return 'r#"%s"#' % val
+    def __len__(self) -> int:
+        return len(self.nodes)
 
-    inner = "".join("\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val)
-    return f'"{inner}"'
+    def __iter__(self) -> Iterable[Node]:
+        return iter(self.nodes)
 
-
-def format_identifier(ident):
-    if ident_re.match(ident):
-        return ident
-    else:
-        return format_string(ident)
-
-
-def format_value(val) -> str:
-    if isinstance(val, Symbol):
-        return ":" + format_identifier(val.value)
-    elif isinstance(val, str):
-        return format_string(val)
-    elif isinstance(val, bool):
-        return "true" if val else "false"
-    elif val is None:
-        return "null"
-    else:
-        return str(val)
+    def __getitem__(self, idx: int) -> Node:
+        return self.nodes[idx]
