@@ -271,24 +271,24 @@ def test_plain_ident():
 
 
 def test_unicode_ws():
-    assert str(parse(u"foo\u3000:bar")) == "foo :bar"
-    assert str(parse(u"foo　:bar")) == "foo :bar"
+    assert str(parse("foo\u3000:bar")) == "foo :bar"
+    assert str(parse("foo　:bar")) == "foo :bar"
 
 
 def test_unicode_ident():
-    assert str(parse(u"ノード")) == u"ノード"
+    assert str(parse("ノード")) == "ノード"
 
 
 def test_unicode_prop_ident():
-    assert str(parse(u"foo お名前=5")) == u"foo お名前=5"
+    assert str(parse("foo お名前=5")) == "foo お名前=5"
 
 
 def test_unicode_string():
-    assert str(parse(u'foo "☜(ﾟヮﾟ☜)"')) == u'foo "☜(ﾟヮﾟ☜)"'
+    assert str(parse('foo "☜(ﾟヮﾟ☜)"')) == 'foo "☜(ﾟヮﾟ☜)"'
 
 
 def test_unicode():
-    assert str(parse(u'ノード　お名前="☜(ﾟヮﾟ☜)"')) == u'ノード お名前="☜(ﾟヮﾟ☜)"'
+    assert str(parse('ノード　お名前="☜(ﾟヮﾟ☜)"')) == 'ノード お名前="☜(ﾟヮﾟ☜)"'
 
 
 def test_short_identifier():

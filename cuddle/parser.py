@@ -20,27 +20,29 @@ named_escape_inverse = {v: k for k, v in named_escapes.items()}
 
 exists = lambda ast, name: ast is not None and name in ast and ast[name] is not None
 
-identRe = regex.compile(
+ident_re = regex.compile(
     r'^[^\\<{;\[=,"0-9\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029][^\\;=,"\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029]*$'
 )
 
 
 def format_identifier(ident):
-    if identRe.match(ident):
+    if ident_re.match(ident):
         return ident
     else:
         return format_string(ident)
 
 
-def format_string(val):
+def format_string(val: str) -> str:
     if "\\" in val and '"' not in val:
         return 'r#"%s"#' % val
-    return '"%s"' % "".join(
+
+    inner = "".join(
         "\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val
     )
+    return f'"{inner}"'
 
 
-def format_value(val):
+def format_value(val) -> str:
     if isinstance(val, Symbol):
         return ":" + format_identifier(val.value)
     elif isinstance(val, str):
@@ -65,38 +67,44 @@ class Document(list):
         return "\n".join(map(str, self))
 
 
-class Node(object):
+class Node:
     def __init__(self, name, properties, arguments, children):
         self.name = name
         self.properties = properties
         self.arguments = arguments
         self.children = children
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.format()
 
-    def format(self, indent=False):
+    def format(self, *, indent: bool = False) -> str:
         fmt = format_identifier(self.name)
+
         if self.properties:
             for k, v in self.properties.items():
-                fmt += " %s=%s" % (format_identifier(k), format_value(v))
+                fmt += " {0}={1}".format(format_identifier(k), format_value(v))
+
         if self.arguments:
             for v in self.arguments:
                 fmt += " " + format_value(v)
+
         if self.children:
             fmt += " {\n"
             for child in self.children:
                 fmt += child.format(indent=True) + "\n"
             fmt += "}"
+
         return "\n".join("\t" + line for line in fmt.split("\n")) if indent else fmt
 
-    def __repr__(self):
-        return "Node(name=%r%s%s%s)" % (
-            self.name,
-            ", properties=%r" % self.properties if self.properties else "",
-            ", arguments=%r" % self.arguments if self.arguments else "",
-            ", children=%r" % self.children if self.children else "",
-        )
+    def __repr__(self) -> str:
+        details = [f"name={self.name!r}"]
+        if self.properties:
+            details.append(f"properties={self.properties!r}")
+        if self.arguments:
+            details.append(f"arguments={self.arguments!r}")
+        if self.children:
+            details.append(f"children={self.children!r}")
+        return f"Node({', '.join(details)})"
 
     def items(self):
         return self.properties.items() if self.properties else ()
@@ -122,26 +130,30 @@ class Node(object):
             return self.properties[name]
 
 
-class Symbol(object):
+class Symbol:
     def __init__(self, value):
         self.value = value
 
-    def __repr__(self):
-        return "Symbol(%r)" % self.value
+    def __repr__(self) -> str:
+        return f"Symbol({self.value})"
 
-    def __str__(self):
-        return ":%s" % self.value
+    def __str__(self) -> str:
+        return ":" + self.value
 
-    def __eq__(self, right):
+    def __eq__(self, right) -> bool:
         return (
             isinstance(right, Symbol) and right.value == self.value
         ) or self.value == right
 
-    def __ne__(self, right):
+    def __ne__(self, right) -> bool:
         return not (self == right)
 
 
-class Parser(object):
+class ParserError(Exception):
+    pass
+
+
+class Parser:
     def __init__(self, document, preserve_property_order, symbols_as_strings, dlist):
         self.preserve_property_order = preserve_property_order
         self.symbols_as_strings = symbols_as_strings
@@ -182,7 +194,7 @@ class Parser(object):
             children = self.parse_nodes(ast["children"]["children"])
         return Node(name, props, args, children)
 
-    def parse_identifier(self, ast):
+    def parse_identifier(self, ast) -> str:
         if exists(ast, "bare"):
             return "".join(ast["bare"])
         return self.parse_string(ast["string"])
@@ -228,7 +240,8 @@ class Parser(object):
             return ast["boolean"] == "true"
         elif exists(ast, "null"):
             return None
-        raise "Unknown AST node! Internal failure: %r" % ast
+
+        raise ParserError(f"Unknown AST node! Internal failure: {ast!r}")
 
     def parse_string(self, ast):
         if exists(ast, "escstring"):
