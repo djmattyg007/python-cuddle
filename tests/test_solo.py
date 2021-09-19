@@ -299,8 +299,13 @@ def test_short_identifier():
 
 def test_messy_identifiers():
     assert str(parse("struct :Mod")) == "struct :Mod\n"
-    assert str(parse("stringref<uint32>[:numFiles] :Files")) == "stringref<uint32>[:numFiles] :Files\n"
-    assert str(parse("Placeable[:numPlaceables] :Placeables")) == "Placeable[:numPlaceables] :Placeables\n"
+    assert (
+        str(parse("stringref<uint32>[:numFiles] :Files")) == "stringref<uint32>[:numFiles] :Files\n"
+    )
+    assert (
+        str(parse("Placeable[:numPlaceables] :Placeables"))
+        == "Placeable[:numPlaceables] :Placeables\n"
+    )
     assert str(parse("foo :obj:stringTable[:index...]")) == "foo :obj:stringTable[:index...]\n"
 
 
