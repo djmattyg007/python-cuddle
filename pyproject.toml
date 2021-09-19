@@ -24,7 +24,6 @@ flake8-pytest-style = "^1.5.0"
 flake8-requirements = "^1.5.1"
 flake8-expression-complexity = "^0.0.9"
 flake8-comprehensions = "^3.6.1"
-check-manifest = "^0.46"
 invoke = "^1.6.0"
 pytest-cov = "^2.12.1"
 
