@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  release:
+    types: ["published"]
+
+jobs:
+  release:
+    runs-on: "ubuntu-20.04"
+
+    steps:
+      - uses: "actions/checkout@v2"
+
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+
+      - name: "Install preparation"
+        run: "python3 -m pip install --upgrade pip wheel"
+
+      - name: "Load cached Poetry installation"
+        uses: "actions/cache@v2"
+        with:
+          path: "~/.local/share/pypoetry"
+          key: "poetry-0" # Increment to reset cache
+
+      - name: "Install Poetry"
+        uses: "snok/install-poetry@v1"
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: "Build package"
+        run: "poetry build"
+
+      - name: "Publish package"
+        uses: "pypa/gh-action-pypi-publish@v1.4.2"
+        with:
+          user: "__token__"
+          password: ${{ secrets.PYPI_TOKEN }}

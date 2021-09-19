@@ -65,7 +65,7 @@ jobs:
       - name: "Run tests"
         run: "poetry run invoke test"
 
-      - name: "Ensure we can build packages"
+      - name: "Test building packages"
         run: "poetry build"
 
       - name: "Upload coverage data to Codecov"
