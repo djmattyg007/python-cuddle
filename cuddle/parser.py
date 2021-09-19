@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import OrderedDict
 from pathlib import Path
 
+import tatsu.exceptions
+
 from ._escaping import named_escapes
 from .grammar import KdlParser
 from .structure import Document, Node, Symbol
@@ -35,7 +37,11 @@ class Parser:
 
         if isinstance(document, bytes):
             document = document.decode("utf-8")
-        ast = ast_parser.parse(document)
+
+        try:
+            ast = ast_parser.parse(document)
+        except tatsu.exceptions.ParseException as e:
+            raise ParserError("Failed to parse the document.") from e
 
         return Document(self._parse_nodes(ast))
 
@@ -136,4 +142,4 @@ def parse(document, *, preserve_property_order: bool = False, symbols_as_strings
     return parser.parse(document)
 
 
-__all__ = ("Parser", "parse")
+__all__ = ("Parser", "ParserError", "parse")
