@@ -80,6 +80,7 @@ def extended_default(o: Any) -> str:
     from base64 import b64encode
     from datetime import datetime, date, time
     from decimal import Decimal
+    from ipaddress import IPv4Address, IPv6Address
     from re import Pattern as RePattern
     from uuid import UUID
 
@@ -92,6 +93,8 @@ def extended_default(o: Any) -> str:
     elif isinstance(o, time):
         return o.isoformat()
     elif isinstance(o, Decimal):
+        return str(o)
+    elif isinstance(o, (IPv4Address, IPv6Address)):
         return str(o)
     elif isinstance(o, RePattern):
         return o.pattern
