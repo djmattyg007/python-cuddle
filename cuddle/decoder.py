@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from typing import Any, Callable, Optional
 
 import tatsu.exceptions
@@ -22,13 +21,9 @@ class KDLDecodeError(ValueError):
 class KDLDecoder:
     def __init__(
         self, *,
-        preserve_property_order: bool = False,
-        symbols_as_strings: bool = False,
         parse_int: Optional[TypeFactory] = None,
         parse_float: Optional[TypeFactory] = None,
     ):
-        self.preserve_property_order = preserve_property_order
-        self.symbols_as_strings = symbols_as_strings
         self.parse_int = parse_int or int
         self.parse_float = parse_float or float
 
@@ -55,7 +50,7 @@ class KDLDecoder:
             return
 
         name = self._parse_identifier(ast["name"])
-        props = OrderedDict() if self.preserve_property_order else {}
+        props = {}
         args = []
         children = []
         if exists(ast, "props_and_args"):
@@ -70,7 +65,7 @@ class KDLDecoder:
         return self._parse_string(ast["string"])
 
     def _parse_props_and_args(self, ast):
-        props = OrderedDict() if self.preserve_property_order else {}
+        props = {}
         args = []
         for elem in ast:
             if exists(elem, "commented"):
@@ -103,8 +98,6 @@ class KDLDecoder:
             return self._parse_string(ast)
         elif exists(ast, "symbol"):
             v = self._parse_identifier(ast["symbol"])
-            if self.symbols_as_strings:
-                return v
             return Symbol(v)
         elif exists(ast, "boolean"):
             return ast["boolean"] == "true"

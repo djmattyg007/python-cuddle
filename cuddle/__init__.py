@@ -48,8 +48,6 @@ def dump(
 def loads(
     s: Union[str, bytes], /, *,
     cls=None,
-    preserve_property_order: bool = False,
-    symbols_as_strings: bool = False,
     parse_int: Optional[TypeFactory] = None,
     parse_float: Optional[TypeFactory] = None,
 ) -> Document:
@@ -60,8 +58,6 @@ def loads(
         cls = KDLDecoder
 
     decoder = cls(
-        preserve_property_order=preserve_property_order,
-        symbols_as_strings=symbols_as_strings,
         parse_int=parse_int,
         parse_float=parse_float,
     )
@@ -72,16 +68,12 @@ def load(
     fp: Union[IO[str], PathLike],
     /, *,
     cls=None,
-    preserve_property_order: bool = False,
-    symbols_as_strings: bool = False,
     parse_int: Optional[TypeFactory] = None,
     parse_float: Optional[TypeFactory] = None,
 ) -> Document:
     _loads = partial(
         loads,
         cls=cls,
-        preserve_property_order=preserve_property_order,
-        symbols_as_strings=symbols_as_strings,
         parse_int=parse_int,
         parse_float=parse_float,
     )
