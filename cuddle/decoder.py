@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from collections import OrderedDict
-from pathlib import Path
+from typing import Any, Callable, Optional
 
 import tatsu.exceptions
 
@@ -10,38 +8,35 @@ from .grammar import KdlParser
 from .structure import Document, Node, Symbol
 
 
+TypeFactory = Callable[[str], Any]
+
 ast_parser = KdlParser(whitespace="", parseinfo=False)
 
 exists = lambda ast, name: ast is not None and name in ast and ast[name] is not None
 
 
-class ParserError(Exception):
+class KDLDecodeError(ValueError):
     pass
 
 
-class Parser:
+class KDLDecoder:
     def __init__(
-        self,
-        *,
+        self, *,
         preserve_property_order: bool = False,
         symbols_as_strings: bool = False,
+        parse_int: Optional[TypeFactory] = None,
+        parse_float: Optional[TypeFactory] = None,
     ):
         self.preserve_property_order = preserve_property_order
         self.symbols_as_strings = symbols_as_strings
+        self.parse_int = parse_int or int
+        self.parse_float = parse_float or float
 
-    def parse(self, document, /) -> Document:
-        if isinstance(document, Path):
-            document = document.read_text(encoding="utf-8")
-        elif hasattr(document, "read") and callable(document.read):
-            document = document.read()
-
-        if isinstance(document, bytes):
-            document = document.decode("utf-8")
-
+    def decode(self, s: str) -> Document:
         try:
-            ast = ast_parser.parse(document)
+            ast = ast_parser.parse(s)
         except tatsu.exceptions.ParseException as e:
-            raise ParserError("Failed to parse the document.") from e
+            raise KDLDecodeError("Failed to parse the document.") from e
 
         return Document(self._parse_nodes(ast))
 
@@ -64,7 +59,7 @@ class Parser:
         args = []
         children = []
         if exists(ast, "props_and_args"):
-            props, args = self.parse_props_and_args(ast["props_and_args"])
+            props, args = self._parse_props_and_args(ast["props_and_args"])
         if exists(ast, "children") and not exists(ast["children"], "commented"):
             children = self._parse_nodes(ast["children"]["children"])
         return Node(name, props, args, children)
@@ -74,7 +69,7 @@ class Parser:
             return "".join(ast["bare"])
         return self._parse_string(ast["string"])
 
-    def parse_props_and_args(self, ast):
+    def _parse_props_and_args(self, ast):
         props = OrderedDict() if self.preserve_property_order else {}
         args = []
         for elem in ast:
@@ -116,30 +111,21 @@ class Parser:
         elif exists(ast, "null"):
             return None
 
-        raise ParserError(f"Unknown AST node! Internal failure: {ast!r}")
+        raise KDLDecodeError(f"Unknown AST node! Internal failure: {ast!r}")
 
     def _parse_string(self, ast):
-        if exists(ast, "escstring"):
-            val = ""
-            for elem in ast["escstring"]:
-                if exists(elem, "char"):
-                    val += elem["char"]
-                elif exists(elem, "escape"):
-                    esc = elem["escape"]
-                    if exists(esc, "named"):
-                        val += named_escapes[esc["named"]]
-                    else:
-                        val += chr(int(esc["unichar"], 16))
-            return val
-        return ast["rawstring"]
+        if not exists(ast, "escstring"):
+            return ast["rawstring"]
 
+        val = ""
+        for elem in ast["escstring"]:
+            if exists(elem, "char"):
+                val += elem["char"]
+            elif exists(elem, "escape"):
+                esc = elem["escape"]
+                if exists(esc, "named"):
+                    val += named_escapes[esc["named"]]
+                else:
+                    val += chr(int(esc["unichar"], 16))
 
-def parse(document, *, preserve_property_order: bool = False, symbols_as_strings: bool = False):
-    parser = Parser(
-        preserve_property_order=preserve_property_order,
-        symbols_as_strings=symbols_as_strings,
-    )
-    return parser.parse(document)
-
-
-__all__ = ("Parser", "ParserError", "parse")
+        return val

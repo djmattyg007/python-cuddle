@@ -71,9 +71,9 @@ class Document:
         self.nodes = nodes
 
     def __str__(self) -> str:
-        from .formatter import format_document
+        from . import dumps
 
-        return "".join(format_document(self))
+        return dumps(self)
 
     def __len__(self) -> int:
         return len(self.nodes)
