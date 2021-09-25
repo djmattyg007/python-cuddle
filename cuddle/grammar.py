@@ -259,6 +259,8 @@ class KdlParser(Parser):
         with self._ifnot():
             self._digit_()
         with self._ifnot():
+            self._keyword_()
+        with self._ifnot():
             with self._group():
                 self._node_terminator_()
         self._first_identifier_char_()
@@ -272,6 +274,18 @@ class KdlParser(Parser):
     @tatsumasu()
     def _digit_(self):  # noqa
         self._pattern('[0-9]')
+
+    @tatsumasu()
+    def _keyword_(self):  # noqa
+        with self._choice():
+            with self._option():
+                self._boolean_()
+            with self._option():
+                self._null_()
+            self._error(
+                'expecting one of: '
+                "'true' 'false' <boolean> 'null'"
+            )
 
     @tatsumasu()
     def _first_identifier_char_(self):  # noqa
@@ -313,12 +327,10 @@ class KdlParser(Parser):
                 with self._option():
                     self._string_()
                 with self._option():
-                    self._boolean_()
-                with self._option():
-                    self._null_()
+                    self._keyword_()
                 self._error(
                     'expecting one of: '
-                    '<number> <string> <boolean> <null>'
+                    '<number> <string> <keyword>'
                 )
         self.name_last_node('value')
         self._define(
@@ -630,6 +642,9 @@ class KdlSemantics(object):
         return ast
 
     def digit(self, ast):  # noqa
+        return ast
+
+    def keyword(self, ast):  # noqa
         return ast
 
     def first_identifier_char(self, ast):  # noqa
