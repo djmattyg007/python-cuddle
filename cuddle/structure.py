@@ -72,3 +72,11 @@ class Document:
 
     def __iter__(self) -> Iterable[Node]:
         return self.nodes.__iter__()
+
+
+__all__ = (
+    "Node",
+    "TypedNode",
+    "NodeList",
+    "Document",
+)
