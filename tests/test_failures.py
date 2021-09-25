@@ -38,7 +38,7 @@ def test_keyword_node_names(s: str):
         "node (true)123",
         "node (false)456",
         "node (null)789",
-    )
+    ),
 )
 def test_keyword_type_annotations(s: str):
     errmsg = "^" + re.escape("Failed to parse the document.") + "$"

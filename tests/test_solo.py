@@ -323,7 +323,7 @@ def test_empty_children():
         ('("true")node', "true"),
         ('("false")node', "false"),
         ('("null")node', "null"),
-    )
+    ),
 )
 def test_quoted_keyword_type_annotations(s: str, node_type: str):
     doc = loads(s)
