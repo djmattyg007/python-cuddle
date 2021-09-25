@@ -10,9 +10,10 @@ Cuddle supports Python 3.9 and above.
 
 ## Usage
 
-```py
-from cuddle import parse, Document, Node
-print(parse('''// Nodes can be separated into multiple lines
+```python
+from cuddle import Document, Node, NodeList, dumps, loads
+
+loaded_doc = loads('''// Nodes can be separated into multiple lines
 title \
   "Some title"
 
@@ -40,13 +41,21 @@ foo123~!@#$%^&*.:'|/?+ "weeee"
 // kdl specifically allows properties and values to be
 // interspersed with each other, much like CLI commands.
 foo bar=true "baz" quux=false 1 2 3
-'''))
+''')
+print(dumps(loaded_doc))
 
-# Creating documents from scratch is currently very gross
 print()
-doc = Document()
-doc.append(Node(name='simple-name', properties=None, arguments=[123], children=[Node(name='complex name here!', properties=None, arguments=None, children=None)]))
-print(doc)
+
+# Creating documents from scratch is a bit verbose
+doc = Document(NodeList([]))
+nodes = []
+child_node = Node("complex name here!", [], {}, NodeList([]))
+nodes.append(
+    Node("simple-name", [123], {}, NodeList([child_node]))
+)
+node_list = NodeList(nodes)
+doc = Document(node_list)
+print(dumps(doc))
 ```
 
 ```
@@ -58,7 +67,7 @@ foo123~!@#$%^&*.:'|/?+ "weeee"
 foo bar=true quux=false "baz" 1 2 3
 
 simple-name 123 {
-        "complex name here!"
+  "complex name here!"
 }
 ```
 
