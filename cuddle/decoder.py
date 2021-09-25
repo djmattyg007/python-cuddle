@@ -77,9 +77,7 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
             if exists(elem, "commented"):
                 continue
             if exists(elem, "prop"):
-                props[parse_identifier(elem["prop"]["name"])] = parse_value(
-                    elem["prop"]["value"]
-                )
+                props[parse_identifier(elem["prop"]["name"])] = parse_value(elem["prop"]["value"])
             else:
                 args.append(parse_value(elem["value"]))
         return props, args
@@ -116,7 +114,8 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
 class KDLDecoder:
     def __init__(
-        self, *,
+        self,
+        *,
         parse_int: Optional[TypeFactory] = None,
         parse_float: Optional[TypeFactory] = None,
     ):

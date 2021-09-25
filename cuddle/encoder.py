@@ -21,7 +21,9 @@ def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document]
         if "\\" in val and '"' not in val:
             return 'r#"%s"#' % val
 
-        inner = "".join("\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val)
+        inner = "".join(
+            "\\" + named_escape_inverse[c] if c in named_escape_inverse else c for c in val
+        )
         return f'"{inner}"'
 
     def format_identifier(ident: str) -> str:
@@ -78,7 +80,7 @@ def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document]
 
 def extended_default(o: Any) -> str:
     from base64 import b64encode
-    from datetime import datetime, date, time
+    from datetime import date, datetime, time
     from decimal import Decimal
     from ipaddress import IPv4Address, IPv6Address
     from re import Pattern as RePattern
@@ -107,7 +109,9 @@ def extended_default(o: Any) -> str:
 
 
 class KDLEncoder:
-    def __init__(self, *, indent: Union[str, int, None] = None, default: Optional[DefaultHandler] = None):
+    def __init__(
+        self, *, indent: Union[str, int, None] = None, default: Optional[DefaultHandler] = None
+    ):
         self.indent: str
         if isinstance(indent, str):
             self.indent = indent

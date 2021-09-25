@@ -4,13 +4,15 @@ from functools import partial
 from os import PathLike
 from typing import IO, Optional, Union
 
-from .decoder import KDLDecoder, KDLDecodeError, TypeFactory
+from .decoder import KDLDecodeError, KDLDecoder, TypeFactory
 from .encoder import DefaultHandler, KDLEncoder, extended_default
 from .structure import Document, Node, Symbol
 
 
 def dumps(
-    doc: Document, /, *,
+    doc: Document,
+    /,
+    *,
     cls=None,
     indent: Union[str, int, None] = None,
     default: Optional[DefaultHandler] = None,
@@ -25,7 +27,8 @@ def dumps(
 def dump(
     doc: Document,
     fp: Union[IO[str], PathLike],
-    /, *,
+    /,
+    *,
     cls=None,
     indent: Union[str, int, None] = None,
     default: Optional[DefaultHandler] = None,
@@ -46,7 +49,9 @@ def dump(
 
 
 def loads(
-    s: Union[str, bytes], /, *,
+    s: Union[str, bytes],
+    /,
+    *,
     cls=None,
     parse_int: Optional[TypeFactory] = None,
     parse_float: Optional[TypeFactory] = None,
@@ -66,7 +71,8 @@ def loads(
 
 def load(
     fp: Union[IO[str], PathLike],
-    /, *,
+    /,
+    *,
     cls=None,
     parse_int: Optional[TypeFactory] = None,
     parse_float: Optional[TypeFactory] = None,
