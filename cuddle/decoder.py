@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence
 
 import tatsu.exceptions
 from tatsu.ast import AST
@@ -103,19 +103,19 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
         if exists(ast, "type"):
             node_type = parse_identifier(ast["type"])
-            return TypedNode(name, node_type, args, props, children)
+            return TypedNode(name, node_type, args, props, NodeList(children))
         else:
-            return Node(name, args, props, children)
+            return Node(name, args, props, NodeList(children))
 
-    def parse_nodes(ast) -> NodeList:
+    def parse_nodes(ast: Sequence[AST]) -> List[Node]:
         if ast[0] == [None] or (
             isinstance(ast[0], list) and len(ast[0]) > 0 and isinstance(ast[0][0], str)
         ):
             # TODO: Figure out why empty documents are so strangely handled
-            return NodeList([])
+            return []
 
         nodes = map(parse_node, ast)
-        return NodeList(list(filter(None, nodes)))
+        return list(filter(None, nodes))
 
     return parse_nodes
 
@@ -130,7 +130,7 @@ class KDLDecoder:
         self.parse_int = parse_int or int
         self.parse_float = parse_float or float
 
-    def decode(self, s: str) -> Document:
+    def decode(self, s: str, /) -> Document:
         try:
             ast = ast_parser.parse(s)
         except tatsu.exceptions.ParseException as e:
@@ -138,4 +138,4 @@ class KDLDecoder:
 
         decoder = _make_decoder(self.parse_int, self.parse_float)
 
-        return Document(decoder(ast))
+        return Document(NodeList(decoder(ast)))
