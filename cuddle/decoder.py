@@ -78,7 +78,9 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
             if exists(elem, "commented"):
                 continue
             if exists(elem, "prop"):
-                props[parse_identifier(elem["prop"]["name"])] = parse_value(elem["prop"]["value"]["value"])
+                props[parse_identifier(elem["prop"]["name"])] = parse_value(
+                    elem["prop"]["value"]["value"]
+                )
             else:
                 args.append(parse_value(elem["value"]["value"]))
         return props, args
