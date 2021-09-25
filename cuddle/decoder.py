@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Mapping, Optional
 
 import tatsu.exceptions
 
@@ -11,7 +11,9 @@ TypeFactory = Callable[[str], Any]
 
 ast_parser = KdlParser(whitespace="", parseinfo=False)
 
-exists = lambda ast, name: ast is not None and name in ast and ast[name] is not None
+exists: Callable[[Mapping[str, Any], str], bool] = (
+    lambda ast, name: ast is not None and name in ast and ast[name] is not None
+)
 
 
 class KDLDecodeError(ValueError):
