@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, Iterator, List, Union
 
 
 class Node:
@@ -55,7 +55,7 @@ class NodeList:
     def __bool__(self) -> bool:
         return len(self.nodes) > 0
 
-    def __iter__(self) -> Iterable[Node]:
+    def __iter__(self) -> Iterator[Node]:
         return iter(self.nodes)
 
     def __getitem__(self, idx: int) -> Node:
@@ -70,7 +70,7 @@ class Document:
     def __init__(self, nodes: NodeList):
         self.nodes = nodes
 
-    def __iter__(self) -> Iterable[Node]:
+    def __iter__(self) -> Iterator[Node]:
         return self.nodes.__iter__()
 
 

@@ -88,7 +88,7 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
     def parse_node(ast: AST) -> Optional[Node]:
         if len(ast) == 0 or exists(ast, "commented"):
-            return
+            return None
 
         name = parse_identifier(ast["name"])
         args = []
