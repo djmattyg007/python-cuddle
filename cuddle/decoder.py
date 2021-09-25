@@ -139,3 +139,9 @@ class KDLDecoder:
         decoder = _make_decoder(self.parse_int, self.parse_float)
 
         return Document(NodeList(decoder(ast)))
+
+
+__all__ = (
+    "KDLDecoder",
+    "KDLDecodeError",
+)
