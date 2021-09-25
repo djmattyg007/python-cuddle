@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from typing import Any, Callable, Mapping, Optional
 
 import tatsu.exceptions
 
 from ._escaping import named_escapes
 from .grammar import KdlParser
-from .structure import Document, Node, Symbol
+from .structure import Document, Node, NodeList, Symbol, TypedNode
 
 
 TypeFactory = Callable[[str], Any]
@@ -72,44 +74,48 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
         raise KDLDecodeError(f"Unknown AST node! Internal failure: {ast!r}")
 
-    def parse_props_and_args(ast):
-        props = {}
+    def parse_args_and_props(ast):
         args = []
+        props = {}
         for elem in ast:
             if exists(elem, "commented"):
                 continue
             if exists(elem, "prop"):
-                props[parse_identifier(elem["prop"]["name"])] = parse_value(elem["prop"]["value"])
+                props[parse_identifier(elem["prop"]["name"])] = parse_value(elem["prop"]["value"]["value"])
             else:
-                args.append(parse_value(elem["value"]))
+                args.append(parse_value(elem["value"]["value"]))
         return props, args
 
-    def parse_node(ast):
+    def parse_node(ast) -> Optional[Node]:
         if len(ast) == 0 or exists(ast, "commented"):
             return
 
         name = parse_identifier(ast["name"])
-        props = {}
         args = []
+        props = {}
         children = []
 
-        if exists(ast, "props_and_args"):
-            props, args = parse_props_and_args(ast["props_and_args"])
+        if exists(ast, "args_and_props"):
+            props, args = parse_args_and_props(ast["args_and_props"])
 
         if exists(ast, "children") and not exists(ast["children"], "commented"):
             children = parse_nodes(ast["children"]["children"])
 
-        return Node(name, props, args, children)
+        if exists(ast, "type"):
+            node_type = parse_string(ast["type"])
+            return TypedNode(name, node_type, args, props, children)
+        else:
+            return Node(name, args, props, children)
 
-    def parse_nodes(ast):
+    def parse_nodes(ast) -> NodeList:
         if ast[0] == [None] or (
             isinstance(ast[0], list) and len(ast[0]) > 0 and isinstance(ast[0][0], str)
         ):
             # TODO: Figure out why empty documents are so strangely handled
-            return []
+            return NodeList([])
 
         nodes = map(parse_node, ast)
-        return list(filter(None, nodes))
+        return NodeList(list(filter(None, nodes)))
 
     return parse_nodes
 

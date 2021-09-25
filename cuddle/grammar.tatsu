@@ -4,18 +4,20 @@
 start = {ws} @:nodes {ws} $;
 
 nodes = {linespace} {@+:node {linespace}};
-node = [commented:'/-' {ws}] name:identifier {node_space props_and_args+:node_props_and_args} [{node_space} children:node_children {ws}] node_terminator;
-node_props_and_args = [commented:'/-' {ws}] (prop:prop | value:value);
+node = [commented:'/-' {ws}] [type:type] name:identifier {node_space args_and_props+:node_args_and_props} [{node_space} children:node_children {ws}] node_terminator;
+node_args_and_props = [commented:'/-' {ws}] (value:value | prop:prop);
 node_children = [commented:'/-' {ws}] '{' children:nodes '}';
 node_space = ({ws} escline {ws}) | {ws}+;
 node_terminator = single_line_comment | newline | ';' | $;
+
 identifier = string:string | bare:bare_identifier;
 bare_identifier = !digit !(node_terminator ) @+:first_identifier_char {@+:rest_identifier_char};
 digit = /[0-9]/;
-first_identifier_char = !linespace !/[\\<{};\[=,"]/ /./;
-rest_identifier_char = !linespace !/[\\;=,"]/ /./;
+first_identifier_char = !linespace !/[\\<(){};\[=,"]/ /./;
+rest_identifier_char = !linespace !/[\\();=,"]/ /./;
 prop = name:identifier '=' value:value;
-value = symbol | number | string | boolean | null;
+value = [type:type] value:(symbol | number | string | boolean | null);
+type = '(' @:identifier ')';
 
 string = raw_string | escaped_string;
 escaped_string = '"' escstring:{character}* '"';

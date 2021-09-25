@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence, Union
+from typing import Iterable, List, Union
 
 
 class Symbol:
@@ -21,16 +21,11 @@ class Symbol:
 
 
 class Node:
-    def __init__(self, name: str, properties, arguments, children: Sequence[Node]):
+    def __init__(self, name: str, arguments, properties, children: NodeList):
         self.name = name
-        self.properties = properties
         self.arguments = arguments
+        self.properties = properties
         self.children = children
-
-    def __str__(self) -> str:
-        from .formatter import format_node
-
-        return format_node(self)
 
     def __repr__(self) -> str:
         details = [f"name={self.name!r}"]
@@ -66,14 +61,15 @@ class Node:
             return self.properties[name]
 
 
-class Document:
-    def __init__(self, nodes: Sequence[Node]):
+class TypedNode(Node):
+    def __init__(self, name: str, node_type: str, arguments, properties, children: NodeList):
+        super().__init__(name, arguments, properties, children)
+        self.node_type = node_type
+
+
+class NodeList:
+    def __init__(self, nodes: List[Node]):
         self.nodes = nodes
-
-    def __str__(self) -> str:
-        from . import dumps
-
-        return dumps(self)
 
     def __len__(self) -> int:
         return len(self.nodes)
@@ -83,3 +79,11 @@ class Document:
 
     def __getitem__(self, idx: int) -> Node:
         return self.nodes[idx]
+
+
+class Document:
+    def __init__(self, nodes: NodeList):
+        self.nodes = nodes
+
+    def __iter__(self) -> Iterable[Node]:
+        return iter(self.nodes)

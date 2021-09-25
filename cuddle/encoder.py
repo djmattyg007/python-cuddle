@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Callable, Iterable, Optional, Union
 
 import regex
@@ -71,7 +73,7 @@ def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document]
             yield indent + "}"
 
     def format_document(document: Document) -> Iterable[str]:
-        for node in document.nodes:
+        for node in document:
             yield from format_node(node, top_level=True)
             yield "\n"
 

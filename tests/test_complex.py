@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from cuddle import load
+from cuddle import dumps, load
 
 
 fixtures_path = Path(__file__).parent
@@ -13,4 +13,4 @@ def test_from_file():
     doc = load(before_formatting_file)
     formatted_doc = after_formatting_file.read_text()
 
-    assert str(doc) == formatted_doc
+    assert dumps(doc) == formatted_doc

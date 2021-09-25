@@ -117,33 +117,36 @@ class KdlParser(Parser):
             def block1():
                 self._ws_()
             self._closure(block1)
+        with self._optional():
+            self._type_()
+            self.name_last_node('type')
         self._identifier_()
         self.name_last_node('name')
 
-        def block3():
+        def block4():
             self._node_space_()
-            self._node_props_and_args_()
-            self.add_last_node_to_name('props_and_args')
-        self._closure(block3)
+            self._node_args_and_props_()
+            self.add_last_node_to_name('args_and_props')
+        self._closure(block4)
         with self._optional():
 
-            def block5():
+            def block6():
                 self._node_space_()
-            self._closure(block5)
+            self._closure(block6)
             self._node_children_()
             self.name_last_node('children')
 
-            def block7():
+            def block8():
                 self._ws_()
-            self._closure(block7)
+            self._closure(block8)
         self._node_terminator_()
         self._define(
-            ['children', 'commented', 'name'],
-            ['props_and_args']
+            ['children', 'commented', 'name', 'type'],
+            ['args_and_props']
         )
 
     @tatsumasu()
-    def _node_props_and_args_(self):  # noqa
+    def _node_args_and_props_(self):  # noqa
         with self._optional():
             self._token('/-')
             self.name_last_node('commented')
@@ -154,14 +157,14 @@ class KdlParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._prop_()
-                    self.name_last_node('prop')
-                with self._option():
                     self._value_()
                     self.name_last_node('value')
+                with self._option():
+                    self._prop_()
+                    self.name_last_node('prop')
                 self._error(
                     'expecting one of: '
-                    '<prop> <value>'
+                    '<value> <prop>'
                 )
         self._define(
             ['commented', 'prop', 'value'],
@@ -275,7 +278,7 @@ class KdlParser(Parser):
         with self._ifnot():
             self._linespace_()
         with self._ifnot():
-            self._pattern('[\\\\<{};\\[=,"]')
+            self._pattern('[\\\\<(){};\\[=,"]')
         self._pattern('.')
 
     @tatsumasu()
@@ -283,7 +286,7 @@ class KdlParser(Parser):
         with self._ifnot():
             self._linespace_()
         with self._ifnot():
-            self._pattern('[\\\\;=,"]')
+            self._pattern('[\\\\();=,"]')
         self._pattern('.')
 
     @tatsumasu()
@@ -300,24 +303,38 @@ class KdlParser(Parser):
 
     @tatsumasu()
     def _value_(self):  # noqa
-        with self._choice():
-            with self._option():
-                self._symbol_()
-            with self._option():
-                self._number_()
-            with self._option():
-                self._string_()
-            with self._option():
-                self._boolean_()
-            with self._option():
-                self._null_()
-            self._error(
-                'expecting one of: '
-                "':' <symbol> <hex> <octal> <binary>"
-                '<decimal> <number> <raw_string>'
-                "<escaped_string> <string> 'true' 'false'"
-                "<boolean> 'null'"
-            )
+        with self._optional():
+            self._type_()
+            self.name_last_node('type')
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._symbol_()
+                with self._option():
+                    self._number_()
+                with self._option():
+                    self._string_()
+                with self._option():
+                    self._boolean_()
+                with self._option():
+                    self._null_()
+                self._error(
+                    'expecting one of: '
+                    '<symbol> <number> <string> <boolean>'
+                    '<null>'
+                )
+        self.name_last_node('value')
+        self._define(
+            ['type', 'value'],
+            []
+        )
+
+    @tatsumasu()
+    def _type_(self):  # noqa
+        self._token('(')
+        self._identifier_()
+        self.name_last_node('@')
+        self._token(')')
 
     @tatsumasu()
     def _string_(self):  # noqa
@@ -607,7 +624,7 @@ class KdlSemantics(object):
     def node(self, ast):  # noqa
         return ast
 
-    def node_props_and_args(self, ast):  # noqa
+    def node_args_and_props(self, ast):  # noqa
         return ast
 
     def node_children(self, ast):  # noqa
@@ -638,6 +655,9 @@ class KdlSemantics(object):
         return ast
 
     def value(self, ast):  # noqa
+        return ast
+
+    def type(self, ast):  # noqa
         return ast
 
     def string(self, ast):  # noqa
