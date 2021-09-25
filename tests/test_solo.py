@@ -1,4 +1,10 @@
-from cuddle import dumps, loads
+from cuddle import Node, dumps, loads
+
+
+def _check_lens(node: Node, /, *, arg_count=0, prop_count=0, child_count=0) -> None:
+    assert len(node.arguments) == arg_count
+    assert len(node.properties) == prop_count
+    assert len(node.children) == child_count
 
 
 def test_empty():
@@ -12,7 +18,7 @@ def test_bare_empty():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 0
+    _check_lens(node)
     assert dumps(doc) == "bare\n"
 
 
@@ -21,7 +27,7 @@ def test_bare_int_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 123
     assert dumps(doc) == "bare 123\n"
 
@@ -31,7 +37,7 @@ def test_bare_float_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 123.5
     assert dumps(doc) == "bare 123.5\n"
 
@@ -41,7 +47,7 @@ def test_bare_binary_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 0b1010
     assert dumps(doc) == "bare 10\n"
 
@@ -51,7 +57,7 @@ def test_bare_octal_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 0o1237
     assert dumps(doc) == "bare 671\n"
 
@@ -61,7 +67,7 @@ def test_bare_hex_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 0xDEADBEEF
     assert dumps(doc) == "bare 3735928559\n"
 
@@ -71,7 +77,7 @@ def test_bare_int_us_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 123
     assert dumps(doc) == "bare 123\n"
 
@@ -81,7 +87,7 @@ def test_bare_float_us_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 123.5
     assert dumps(doc) == "bare 123.5\n"
 
@@ -91,7 +97,7 @@ def test_bare_binary_us_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 0b1010
     assert dumps(doc) == "bare 10\n"
 
@@ -101,7 +107,7 @@ def test_bare_octal_us_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 0o1237
     assert dumps(doc) == "bare 671\n"
 
@@ -111,7 +117,7 @@ def test_bare_hex_us_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] == 0xDEADBEEF
     assert dumps(doc) == "bare 3735928559\n"
 
@@ -121,7 +127,7 @@ def test_bare_true_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] is True
     assert dumps(doc) == "bare true\n"
 
@@ -131,7 +137,7 @@ def test_bare_false_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] is False
     assert dumps(doc) == "bare false\n"
 
@@ -141,7 +147,7 @@ def test_bare_null_arg():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, arg_count=1)
     assert node[0] is None
     assert dumps(doc) == "bare null\n"
 
@@ -169,7 +175,7 @@ def test_children():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 3
+    _check_lens(node, child_count=3)
     assert node.children[0].name == "foo"
     assert node.children[1].name == "bar"
     assert node.children[2].name == "baz"
@@ -189,7 +195,7 @@ def test_commented_child():
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 2
+    _check_lens(node, child_count=2)
     assert node.children[0].name == "foo"
     assert node.children[1].name == "baz"
     assert (
@@ -202,14 +208,50 @@ def test_commented_child():
     )
 
 
-def test_prop():
+def test_string_prop():
     doc = loads('bare foo="bar"')
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     assert node.name == "bare"
-    assert len(list(node)) == 1
+    _check_lens(node, prop_count=1)
     assert node["foo"] == "bar"
     assert dumps(doc) == 'bare foo="bar"\n'
+
+
+def test_num_prop():
+    doc = loads("ident abc=123")
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    assert node.name == "ident"
+    _check_lens(node, prop_count=1)
+    assert node["abc"] == 123
+    assert dumps(doc) == "ident abc=123\n"
+
+
+def test_args_and_props():
+    doc = loads('node "arg1" "arg2" prop1="value"')
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    assert node.name == "node"
+    _check_lens(node, arg_count=2, prop_count=1)
+    assert node[0] == "arg1"
+    assert node[1] == "arg2"
+    assert node["prop1"] == "value"
+    assert dumps(doc) == 'node "arg1" "arg2" prop1="value"\n'
+
+
+def test_unordered_args_and_props():
+    doc = loads('node prop1=123 "arg1" "arg2" prop2="foo" 987')
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    assert node.name == "node"
+    _check_lens(node, arg_count=3, prop_count=2)
+    assert node[0] == "arg1"
+    assert node[1] == "arg2"
+    assert node[2] == 987
+    assert node["prop1"] == 123
+    assert node["prop2"] == "foo"
+    assert dumps(doc) == 'node "arg1" "arg2" 987 prop1=123 prop2="foo"\n'
 
 
 def test_string_name():

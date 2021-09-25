@@ -56,11 +56,11 @@ def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document]
 
         yield indent + format_identifier(node.name)
 
-        for k, v in node.properties.items():
-            yield " {0}={1}".format(format_identifier(k), format_value(v))
+        for val in node.arguments:
+            yield " " + format_value(val)
 
-        for v in node.arguments:
-            yield " " + format_value(v)
+        for key, val in node.properties.items():
+            yield " {0}={1}".format(format_identifier(key), format_value(val))
 
         if node.children:
             yield " {\n"

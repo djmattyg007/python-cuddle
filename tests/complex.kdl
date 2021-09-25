@@ -1,12 +1,12 @@
 omgwtfhax
 contents {
-  section "First section" {
+  section "First section" counter=1 {
     paragraph name="This is the first paragraph"
     paragraph "This is the second paragraph
 with internal newline\tand an escape
 and a unicode escape \u{9}"
   }
 }
-"dpsojf" 0b1_01
+"dpsojf" counter=2 0b1_01
 r#"123"#
 foo "bar" 0x123 r#"foobar\podasjfpoj"# 123 123.4 123e-3
