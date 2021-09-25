@@ -4,7 +4,9 @@ from typing import Any, Dict, Iterable, List, Union
 
 
 class Node:
-    def __init__(self, name: str, arguments: List[Any], properties: Dict[str, Any], children: NodeList):
+    def __init__(
+        self, name: str, arguments: List[Any], properties: Dict[str, Any], children: NodeList
+    ):
         self.name = name
         self.arguments = arguments
         self.properties = properties
@@ -31,7 +33,14 @@ class Node:
 
 
 class TypedNode(Node):
-    def __init__(self, name: str, node_type: str, arguments: List[Any], properties: Dict[str, Any], children: NodeList):
+    def __init__(
+        self,
+        name: str,
+        node_type: str,
+        arguments: List[Any],
+        properties: Dict[str, Any],
+        children: NodeList,
+    ):
         super().__init__(name, arguments, properties, children)
         self.node_type = node_type
 
