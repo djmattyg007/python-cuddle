@@ -27,3 +27,21 @@ def test_keyword_node_names(s: str):
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads(s)
+
+
+@pytest.mark.parametrize(
+    "s",
+    (
+        "(true)node",
+        "(false)node",
+        "(null)node",
+        "node (true)123",
+        "node (false)456",
+        "node (null)789",
+    )
+)
+def test_keyword_type_annotations(s: str):
+    errmsg = "^" + re.escape("Failed to parse the document.") + "$"
+
+    with pytest.raises(KDLDecodeError, match=errmsg):
+        loads(s)

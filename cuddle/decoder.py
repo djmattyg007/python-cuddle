@@ -102,7 +102,7 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
             children = parse_nodes(ast["children"]["children"])
 
         if exists(ast, "type"):
-            node_type = parse_string(ast["type"])
+            node_type = parse_identifier(ast["type"])
             return TypedNode(name, node_type, args, props, children)
         else:
             return Node(name, args, props, children)
