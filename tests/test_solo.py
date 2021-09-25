@@ -1,4 +1,4 @@
-from cuddle import Symbol, dumps, loads
+from cuddle import dumps, loads
 
 
 def test_empty():
@@ -146,42 +146,6 @@ def test_bare_null_arg():
     assert dumps(doc) == "bare null\n"
 
 
-def test_bare_string_symbol():
-    doc = loads('bare :"name goes here"')
-    assert len(doc.nodes) == 1
-    assert doc.nodes[0][0] == Symbol("name goes here")
-    assert dumps(doc) == 'bare :"name goes here"\n'
-
-
-def test_bare_raw_string_symbol():
-    doc = loads('bare :r#"name\\goes\\here"#')
-    assert len(doc.nodes) == 1
-    assert doc.nodes[0][0] == Symbol("name\\goes\\here")
-    assert dumps(doc) == 'bare :r#"name\\goes\\here"#\n'
-
-
-def test_bare_deep_raw_string_symbol():
-    doc = loads('bare :r####"name\\goes\\here"####')
-    assert len(doc.nodes) == 1
-    assert doc.nodes[0][0] == Symbol("name\\goes\\here")
-    assert dumps(doc) == 'bare :r#"name\\goes\\here"#\n'
-
-
-def test_bare_plain_symbol():
-    assert dumps(loads("bare :foo")) == "bare :foo\n"
-    assert dumps(loads('bare :"foo"')) == "bare :foo\n"
-    assert dumps(loads('bare :r#"foo"#')) == "bare :foo\n"
-
-
-def test_symbol_comparison():
-    doc = loads("bare :foo")
-    nodes = doc.nodes
-    assert nodes[0][0] == Symbol("foo")
-    assert nodes[0][0] == "foo"
-    assert nodes[0][0] != Symbol("bar")
-    assert nodes[0][0] != "bar"
-
-
 def test_commented_empty():
     doc = loads("/-bare")
     assert len(doc.nodes) == 0
@@ -275,8 +239,8 @@ def test_plain_ident():
 
 
 def test_unicode_ws():
-    assert dumps(loads("foo\u3000:bar")) == "foo :bar\n"
-    assert dumps(loads("foo　:bar")) == "foo :bar\n"
+    assert dumps(loads("foo\u3000123")) == "foo 123\n"
+    assert dumps(loads("foo　123")) == "foo 123\n"
 
 
 def test_unicode_ident():
@@ -297,18 +261,6 @@ def test_unicode():
 
 def test_short_identifier():
     assert dumps(loads("T")) == "T\n"
-
-
-def test_messy_identifiers():
-    assert dumps(loads("struct :Mod")) == "struct :Mod\n"
-    assert (
-        dumps(loads("stringref<uint32>[:numFiles] :Files")) == "stringref<uint32>[:numFiles] :Files\n"
-    )
-    assert (
-        dumps(loads("Placeable[:numPlaceables] :Placeables"))
-        == "Placeable[:numPlaceables] :Placeables\n"
-    )
-    assert dumps(loads("foo :obj:stringTable[:index...]")) == "foo :obj:stringTable[:index...]\n"
 
 
 def test_empty_children():

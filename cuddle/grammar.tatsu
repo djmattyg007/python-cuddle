@@ -16,7 +16,7 @@ digit = /[0-9]/;
 first_identifier_char = !linespace !/[\\<(){};\[=,"]/ /./;
 rest_identifier_char = !linespace !/[\\();=,"]/ /./;
 prop = name:identifier '=' value:value;
-value = [type:type] value:(symbol | number | string | boolean | null);
+value = [type:type] value:(number | string | boolean | null);
 type = '(' @:identifier ')';
 
 string = raw_string | escaped_string;
@@ -27,8 +27,6 @@ escape = named:/[\\\/bfnrt]/ | 'u{' unichar:/[0-9a-fA-F]{1,6}/ '}';
 raw_string = 'r' rawstring:raw_string_hash;
 raw_string_hash = '#' @:raw_string_hash '#' | @:raw_string_quotes;
 raw_string_quotes = '"' @:/[^"]*/ '"';
-
-symbol = ':' symbol:identifier;
 
 number = hex | octal | binary | decimal;
 

@@ -7,4 +7,4 @@ contents {
 }
 dpsojf 5
 "123"
-foo "bar" 291 :hax r#"foobar\podasjfpoj"# 123 123.4 0.123
+foo "bar" 291 r#"foobar\podasjfpoj"# 123 123.4 0.123

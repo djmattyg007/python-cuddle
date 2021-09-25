@@ -3,23 +3,6 @@ from __future__ import annotations
 from typing import Iterable, List, Union
 
 
-class Symbol:
-    def __init__(self, value: str):
-        self.value = value
-
-    def __repr__(self) -> str:
-        return f"Symbol({self.value})"
-
-    def __str__(self) -> str:
-        return ":" + self.value
-
-    def __eq__(self, right) -> bool:
-        return (isinstance(right, Symbol) and right.value == self.value) or self.value == right
-
-    def __ne__(self, right) -> bool:
-        return not (self == right)
-
-
 class Node:
     def __init__(self, name: str, arguments, properties, children: NodeList):
         self.name = name

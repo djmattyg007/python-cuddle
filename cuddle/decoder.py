@@ -6,7 +6,7 @@ import tatsu.exceptions
 
 from ._escaping import named_escapes
 from .grammar import KdlParser
-from .structure import Document, Node, NodeList, Symbol, TypedNode
+from .structure import Document, Node, NodeList, TypedNode
 
 
 TypeFactory = Callable[[str], Any]
@@ -64,9 +64,6 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
                 return _parse_int(v)
         elif exists(ast, "escstring") or exists(ast, "rawstring"):
             return parse_string(ast)
-        elif exists(ast, "symbol"):
-            v = parse_identifier(ast["symbol"])
-            return Symbol(v)
         elif exists(ast, "boolean"):
             return ast["boolean"] == "true"
         elif exists(ast, "null"):

@@ -5,7 +5,7 @@ from typing import Any, Callable, Iterable, Optional, Union
 import regex
 
 from ._escaping import named_escape_inverse
-from .structure import Document, Node, Symbol
+from .structure import Document, Node
 
 
 DefaultHandler = Callable[[Any], str]
@@ -35,9 +35,7 @@ def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document]
             return format_string(ident)
 
     def format_value(val: Any) -> str:
-        if isinstance(val, Symbol):
-            return ":" + format_identifier(val.value)
-        elif isinstance(val, str):
+        if isinstance(val, str):
             return format_string(val)
         elif val is None:
             return "null"

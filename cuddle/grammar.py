@@ -309,8 +309,6 @@ class KdlParser(Parser):
         with self._group():
             with self._choice():
                 with self._option():
-                    self._symbol_()
-                with self._option():
                     self._number_()
                 with self._option():
                     self._string_()
@@ -320,8 +318,7 @@ class KdlParser(Parser):
                     self._null_()
                 self._error(
                     'expecting one of: '
-                    '<symbol> <number> <string> <boolean>'
-                    '<null>'
+                    '<number> <string> <boolean> <null>'
                 )
         self.name_last_node('value')
         self._define(
@@ -433,16 +430,6 @@ class KdlParser(Parser):
         self._pattern('[^"]*')
         self.name_last_node('@')
         self._token('"')
-
-    @tatsumasu()
-    def _symbol_(self):  # noqa
-        self._token(':')
-        self._identifier_()
-        self.name_last_node('symbol')
-        self._define(
-            ['symbol'],
-            []
-        )
 
     @tatsumasu()
     def _number_(self):  # noqa
@@ -679,9 +666,6 @@ class KdlSemantics(object):
         return ast
 
     def raw_string_quotes(self, ast):  # noqa
-        return ast
-
-    def symbol(self, ast):  # noqa
         return ast
 
     def number(self, ast):  # noqa
