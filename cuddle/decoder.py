@@ -49,20 +49,20 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
     def parse_value(ast: AST):
         if exists(ast, "hex"):
-            v = ast["hex"].replace("_", "")
-            return int(v[0] + v[3:] if v[0] != "0" else v[2:], 16)
+            raw_value = ast["hex"].replace("_", "")
+            return int(raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:], 16)
         elif exists(ast, "octal"):
-            v = ast["octal"].replace("_", "")
-            return int(v[0] + v[3:] if v[0] != "0" else v[2:], 8)
+            raw_value = ast["octal"].replace("_", "")
+            return int(raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:], 8)
         elif exists(ast, "binary"):
-            v = ast["binary"].replace("_", "")
-            return int(v[0] + v[3:] if v[0] != "0" else v[2:], 2)
+            raw_value = ast["binary"].replace("_", "")
+            return int(raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:], 2)
         elif exists(ast, "decimal"):
-            v = ast["decimal"].replace("_", "")
-            if "." in v or "e" in v or "E" in v:
-                return _parse_float(v)
+            raw_value = ast["decimal"].replace("_", "")
+            if "." in raw_value or "e" in raw_value or "E" in raw_value:
+                return _parse_float(raw_value)
             else:
-                return _parse_int(v)
+                return _parse_int(raw_value)
         elif exists(ast, "escstring") or exists(ast, "rawstring"):
             return parse_string(ast)
         elif exists(ast, "boolean"):
