@@ -333,3 +333,10 @@ def test_quoted_keyword_type_annotations(s: str, node_type: str):
     assert node.name == "node"
     assert node.node_type == node_type
     _check_lens(node)
+
+
+def test_single_line_comment_with_no_newline():
+    # When I first forked kdl-py into cuddle, attempting to do this
+    # would result in a stack overflow.
+    doc = loads("//test")
+    assert len(doc.nodes) == 0

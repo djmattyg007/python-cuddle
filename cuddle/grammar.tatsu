@@ -4,11 +4,11 @@
 start = {ws} @:nodes {ws} $;
 
 nodes = {linespace} {@+:node {linespace}};
-node = [commented:'/-' {ws}] [type:type] name:identifier {node_space args_and_props+:node_args_and_props} [{node_space} children:node_children {ws}] node_terminator;
-node_args_and_props = [commented:'/-' {ws}] (value:value | prop:prop);
-node_children = [commented:'/-' {ws}] '{' children:nodes '}';
+node = [commented:'/-' {ws}] [type:type] name:identifier {node_space {node_space} args_and_props+:node_args_and_props} [{node_space} children:node_children {ws}] {node_space} node_terminator;
+node_args_and_props = [commented:'/-' {node_space}] (value:value | prop:prop);
+node_children = [commented:'/-' {node_space}] '{' children:nodes '}';
 node_space = ({ws} escline {ws}) | {ws}+;
-node_terminator = single_line_comment | newline | ';' | $;
+node_terminator = commented:single_line_comment | newline | ';' | $;
 
 identifier = string:string | bare:bare_identifier;
 bare_identifier = !digit !keyword !(node_terminator ) @+:first_identifier_char {@+:rest_identifier_char};
@@ -41,11 +41,11 @@ null = null:('null');
 
 escline = '\' {ws} (single_line_comment | newline);
 
-linespace = $ | newline | ws | single_line_comment;
+linespace = newline | ws | single_line_comment;
 
-single_line_comment = '//' ->newline;
-multi_line_comment = '/*' (commented_block | multi_line_comment) '*/';
-commented_block = {'*' /[^\/]/ | /[^*]/}*;
+single_line_comment = '//' ->(newline | $);
+multi_line_comment = '/*' commented_block;
+commented_block = '*/' | ((multi_line_comment | '*' | '/' | {/[^*\/]/}+) commented_block);
 
 newline = /(\r\n|[\r\n\u0085\u000C\u2028\u2029])/;
-ws = /([\t \u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]|\uFFEF)+/;
+ws = /([\t \u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]|\uFFEF)+/ | multi_line_comment;

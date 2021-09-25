@@ -9,11 +9,19 @@ and a unicode escape \u{9}"
       abc
       def
     }
+    paragraph /*123*/ name="This is the final paragraph"
   }
 
+  /* a
+   multi
+   *
+   line comment
+    */
 }
-// a comment
- // indented comment
+//comment
+// second comment
+// a third comment
+ // another comment
 "dpsojf" counter=2 0b1_01
-r#"123"#
-foo "bar" 0x123 r#"foobar\podasjfpoj"# 123 123.4 123e-3
+r#"123"#//EOL comment
+foo "bar" 0x123 r#"foobar\podasjfpoj"# 123 123.4 123e-3 // EOL comment 2

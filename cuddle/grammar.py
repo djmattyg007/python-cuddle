@@ -125,20 +125,28 @@ class KdlParser(Parser):
 
         def block4():
             self._node_space_()
+
+            def block5():
+                self._node_space_()
+            self._closure(block5)
             self._node_args_and_props_()
             self.add_last_node_to_name('args_and_props')
         self._closure(block4)
         with self._optional():
 
-            def block6():
+            def block7():
                 self._node_space_()
-            self._closure(block6)
+            self._closure(block7)
             self._node_children_()
             self.name_last_node('children')
 
-            def block8():
+            def block9():
                 self._ws_()
-            self._closure(block8)
+            self._closure(block9)
+
+        def block10():
+            self._node_space_()
+        self._closure(block10)
         self._node_terminator_()
         self._define(
             ['children', 'commented', 'name', 'type'],
@@ -152,7 +160,7 @@ class KdlParser(Parser):
             self.name_last_node('commented')
 
             def block1():
-                self._ws_()
+                self._node_space_()
             self._closure(block1)
         with self._group():
             with self._choice():
@@ -178,7 +186,7 @@ class KdlParser(Parser):
             self.name_last_node('commented')
 
             def block1():
-                self._ws_()
+                self._node_space_()
             self._closure(block1)
         self._token('{')
         self._nodes_()
@@ -213,7 +221,7 @@ class KdlParser(Parser):
                 "'\\\\' <escline> ([\\t \\u00A0\\u1680\\u2000\\u"
                 '2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007'
                 '\\u2008\\u2009\\u200A\\u202F\\u205F\\u3000]|\\u'
-                'FFEF)+ <ws>'
+                "FFEF)+ '/*' <multi_line_comment> <ws>"
             )
 
     @tatsumasu()
@@ -221,6 +229,7 @@ class KdlParser(Parser):
         with self._choice():
             with self._option():
                 self._single_line_comment_()
+                self.name_last_node('commented')
             with self._option():
                 self._newline_()
             with self._option():
@@ -233,6 +242,10 @@ class KdlParser(Parser):
                 '(\\r\\n|[\\r\\n\\u0085\\u000C\\u2028\\u2029])'
                 "<newline> ';'"
             )
+        self._define(
+            ['commented'],
+            []
+        )
 
     @tatsumasu()
     def _identifier_(self):  # noqa
@@ -549,8 +562,6 @@ class KdlParser(Parser):
     def _linespace_(self):  # noqa
         with self._choice():
             with self._option():
-                self._check_eof()
-            with self._option():
                 self._newline_()
             with self._option():
                 self._ws_()
@@ -562,7 +573,8 @@ class KdlParser(Parser):
                 '<newline> ([\\t \\u00A0\\u1680\\u2000\\u2001\\'
                 'u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u200'
                 '8\\u2009\\u200A\\u202F\\u205F\\u3000]|\\uFFEF)'
-                "+ <ws> '//' <single_line_comment>"
+                "+ '/*' <multi_line_comment> <ws> '//'"
+                '<single_line_comment>'
             )
 
     @tatsumasu()
@@ -570,39 +582,53 @@ class KdlParser(Parser):
         self._token('//')
 
         def block0():
-            self._newline_()
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._newline_()
+                    with self._option():
+                        self._check_eof()
+                    self._error(
+                        'expecting one of: '
+                        '<newline>'
+                    )
         self._skip_to(block0)
 
     @tatsumasu()
     def _multi_line_comment_(self):  # noqa
         self._token('/*')
-        with self._group():
-            with self._choice():
-                with self._option():
-                    self._commented_block_()
-                with self._option():
-                    self._multi_line_comment_()
-                self._error(
-                    'expecting one of: '
-                    '<commented_block> <multi_line_comment>'
-                )
-        self._token('*/')
+        self._commented_block_()
 
     @tatsumasu()
     def _commented_block_(self):  # noqa
+        with self._choice():
+            with self._option():
+                self._token('*/')
+            with self._option():
+                with self._group():
+                    with self._group():
+                        with self._choice():
+                            with self._option():
+                                self._multi_line_comment_()
+                            with self._option():
+                                self._token('*')
+                            with self._option():
+                                self._token('/')
+                            with self._option():
 
-        def block0():
-            with self._choice():
-                with self._option():
-                    self._token('*')
-                    self._pattern('[^\\/]')
-                with self._option():
-                    self._pattern('[^*]')
-                self._error(
-                    'expecting one of: '
-                    "'*' [^*]"
-                )
-        self._closure(block0)
+                                def block0():
+                                    self._pattern('[^*\\/]')
+                                self._positive_closure(block0)
+                            self._error(
+                                'expecting one of: '
+                                "<multi_line_comment> '*' '/' [^*\\/]"
+                            )
+                    self._commented_block_()
+            self._error(
+                'expecting one of: '
+                "'*/' '/*' <multi_line_comment> '*' '/'"
+                '[^*\\/]'
+            )
 
     @tatsumasu()
     def _newline_(self):  # noqa
@@ -610,7 +636,18 @@ class KdlParser(Parser):
 
     @tatsumasu()
     def _ws_(self):  # noqa
-        self._pattern('([\\t \\u00A0\\u1680\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200A\\u202F\\u205F\\u3000]|\\uFFEF)+')
+        with self._choice():
+            with self._option():
+                self._pattern('([\\t \\u00A0\\u1680\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200A\\u202F\\u205F\\u3000]|\\uFFEF)+')
+            with self._option():
+                self._multi_line_comment_()
+            self._error(
+                'expecting one of: '
+                '([\\t \\u00A0\\u1680\\u2000\\u2001\\u2002\\u200'
+                '3\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u2'
+                "00A\\u202F\\u205F\\u3000]|\\uFFEF)+ '/*'"
+                '<multi_line_comment>'
+            )
 
 
 class KdlSemantics(object):

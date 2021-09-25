@@ -3,6 +3,7 @@ contents {
   section "First section" counter=1 {
     paragraph name="This is the first paragraph"
     paragraph "This is the second paragraph\nwith internal newline\tand an escape\nand a unicode escape \t"
+    paragraph name="This is the final paragraph"
   }
 }
 dpsojf 5 counter=2
