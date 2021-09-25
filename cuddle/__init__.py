@@ -92,6 +92,8 @@ def load(
 
 
 __all__ = (
+    "dump",
+    "dumps",
     "load",
     "loads",
     "KDLDecoder",
