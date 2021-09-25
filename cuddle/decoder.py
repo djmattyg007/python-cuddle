@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Optional, Sequence
 
 import tatsu.exceptions
+from tatsu.ast import AST
 
 from ._escaping import named_escapes
 from .grammar import KdlParser
@@ -13,7 +14,7 @@ TypeFactory = Callable[[str], Any]
 
 ast_parser = KdlParser(whitespace="", parseinfo=False)
 
-exists: Callable[[Mapping[str, Any], str], bool] = (
+exists: Callable[[AST, str], bool] = (
     lambda ast, name: ast is not None and name in ast and ast[name] is not None
 )
 
@@ -23,7 +24,7 @@ class KDLDecodeError(ValueError):
 
 
 def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
-    def parse_string(ast):
+    def parse_string(ast: AST):
         if not exists(ast, "escstring"):
             return ast["rawstring"]
 
@@ -40,13 +41,13 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
         return val
 
-    def parse_identifier(ast) -> str:
+    def parse_identifier(ast: AST) -> str:
         if exists(ast, "bare"):
             return "".join(ast["bare"])
 
         return parse_string(ast["string"])
 
-    def parse_value(ast):
+    def parse_value(ast: AST):
         if exists(ast, "hex"):
             v = ast["hex"].replace("_", "")
             return int(v[0] + v[3:] if v[0] != "0" else v[2:], 16)
@@ -71,7 +72,7 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
         raise KDLDecodeError(f"Unknown AST node! Internal failure: {ast!r}")
 
-    def parse_args_and_props(ast):
+    def parse_args_and_props(ast: Sequence[AST]):
         args = []
         props = {}
         for elem in ast:
@@ -85,7 +86,7 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
                 args.append(parse_value(elem["value"]["value"]))
         return props, args
 
-    def parse_node(ast) -> Optional[Node]:
+    def parse_node(ast: AST) -> Optional[Node]:
         if len(ast) == 0 or exists(ast, "commented"):
             return
 
