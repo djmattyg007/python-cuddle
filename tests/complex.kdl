@@ -5,8 +5,15 @@ contents {
     paragraph "This is the second paragraph
 with internal newline\tand an escape
 and a unicode escape \u{9}"
+    /-comment {
+      abc
+      def
+    }
   }
+
 }
+// a comment
+ // indented comment
 "dpsojf" counter=2 0b1_01
 r#"123"#
 foo "bar" 0x123 r#"foobar\podasjfpoj"# 123 123.4 123e-3
