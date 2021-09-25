@@ -63,6 +63,10 @@ class NodeList:
     def __getitem__(self, idx: int) -> Node:
         return self.nodes[idx]
 
+    def get_nodes_by_name(self, name: str) -> Iterable[Node]:
+        filter_func = lambda node: node.name == name
+        return filter(filter_func, self.nodes)
+
 
 class Document:
     def __init__(self, nodes: NodeList):
