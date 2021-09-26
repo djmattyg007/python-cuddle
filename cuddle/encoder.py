@@ -16,7 +16,9 @@ ident_re = regex.compile(
 )
 
 
-def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document], Iterable[str]]:
+def _make_encoder(
+    _indent: str, _default: Callable[[Any], DefaultHandlerResult]
+) -> Callable[[Document], Iterable[str]]:
     _intstr = int.__repr__
     _floatstr = float.__repr__
 
