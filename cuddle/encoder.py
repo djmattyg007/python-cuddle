@@ -8,7 +8,8 @@ from ._escaping import named_escape_inverse
 from .structure import Document, Node
 
 
-DefaultHandler = Callable[[Any], Tuple[Optional[str], str]]
+DefaultHandlerResult = Tuple[Optional[str], str]
+DefaultHandler = Callable[[Any], Optional[DefaultHandlerResult]]
 
 ident_re = regex.compile(
     r'^[^\\<{;\[=,"0-9\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029][^\\;=,"\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029]*$'
@@ -82,7 +83,7 @@ def _make_encoder(_indent: str, _default: DefaultHandler) -> Callable[[Document]
     return format_document
 
 
-def extended_default(o: Any) -> Tuple[Optional[str], str]:
+def extended_default(o: Any) -> Optional[DefaultHandlerResult]:
     from base64 import b64encode
     from datetime import date, datetime, time
     from decimal import Decimal
@@ -114,8 +115,6 @@ def extended_default(o: Any) -> Tuple[Optional[str], str]:
     elif isinstance(o, UUID):
         return "uuid", str(o)
 
-    raise TypeError(f"Object of type {o.__class__.__name__} is not KDL serializable")
-
 
 class KDLEncoder:
     def __init__(
@@ -133,12 +132,20 @@ class KDLEncoder:
         else:
             self.indent = "  "
 
+        self.default_handler: Optional[DefaultHandler]
         if default is not None:
-            self.default = default
+            self.default_handler = default
         elif use_extended_default:
-            self.default = extended_default
+            self.default_handler = extended_default
+        else:
+            self.default_handler = None
 
-    def default(self, o: Any) -> Tuple[Optional[str], str]:
+    def default(self, o: Any) -> DefaultHandlerResult:
+        if self.default_handler:
+            result = self.default_handler(o)
+            if result is not None:
+                return result
+
         raise TypeError(f"Object of type {o.__class__.__name__} is not KDL serializable")
 
     def encode(self, doc: Document) -> str:
