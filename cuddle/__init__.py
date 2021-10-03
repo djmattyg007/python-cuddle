@@ -4,8 +4,9 @@ from functools import partial
 from os import PathLike
 from typing import IO, Optional, Union
 
-from .decoder import FloatFactory, IntFactory, KDLDecodeError, KDLDecoder, StrFactory
+from .decoder import FloatFactory, IntFactory, KDLDecoder, StrFactory, extended_str_parser
 from .encoder import DefaultHandler, KDLEncoder, extended_default
+from .exception import KDLDecodeError
 from .structure import Document, Node, NodeList
 
 
@@ -108,6 +109,7 @@ __all__ = (
     "load",
     "loads",
     "plain_str_parser",
+    "extended_str_parser",
     "KDLDecoder",
     "KDLDecodeError",
     "KDLEncoder",

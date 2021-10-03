@@ -3,7 +3,6 @@ from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
 from re import compile as re_compile
 from urllib.parse import ParseResult as UrlParseResult
-from urllib.parse import urlparse
 from uuid import UUID
 
 from cuddle import Document, Node, NodeList, dumps, loads

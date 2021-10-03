@@ -7,6 +7,7 @@ import tatsu.exceptions
 from tatsu.ast import AST
 
 from ._escaping import named_escapes
+from .exception import KDLDecodeError
 from .grammar import KdlParser
 from .structure import Document, Node, NodeList
 
@@ -21,10 +22,6 @@ ast_parser = KdlParser(whitespace="", parseinfo=False)
 exists: Callable[[AST, str], bool] = (
     lambda ast, name: ast is not None and name in ast and ast[name] is not None
 )
-
-
-class KDLDecodeError(ValueError):
-    pass
 
 
 def _make_decoder(
@@ -103,13 +100,10 @@ def _make_decoder(
         if retval is not None:
             return retval
 
-        if val_type is None:
+        if val_type is None or _ignore_unknown_types:
             return fallback_factory(sanitised_value)
 
-        if _ignore_unknown_types:
-            return fallback_factory(sanitised_value)
-        else:
-            raise KDLDecodeError(f"Failed to decode value '{raw_value}'.")
+        raise KDLDecodeError(f"Failed to decode value '{raw_value}'.")
 
     def parse_args_and_props(ast: Sequence[AST], /):
         args = []
@@ -218,5 +212,8 @@ class KDLDecoder:
 
 __all__ = (
     "KDLDecoder",
-    "KDLDecodeError",
+    "IntFactory",
+    "FloatFactory",
+    "StrFactory",
+    "extended_str_parser",
 )
