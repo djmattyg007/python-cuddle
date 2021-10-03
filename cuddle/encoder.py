@@ -22,7 +22,7 @@ def _make_encoder(
     _intstr = int.__repr__
     _floatstr = float.__repr__
 
-    def format_string(val: str) -> str:
+    def format_string(val: str, /) -> str:
         if "\\" in val and '"' not in val:
             return 'r#"%s"#' % val
 
@@ -31,19 +31,20 @@ def _make_encoder(
         )
         return f'"{inner}"'
 
-    def format_identifier(ident: str) -> str:
+    def format_identifier(ident: str, /) -> str:
         if ident_re.match(ident):
             return ident
         else:
             return format_string(ident)
 
-    def format_value(val: Any) -> str:
-        if isinstance(val, str):
-            return format_string(val)
-        elif val is None:
+    def format_value(val: Any, /) -> str:
+        if val is None:
             return "null"
         elif isinstance(val, bool):
             return "true" if val else "false"
+
+        if isinstance(val, str):
+            return format_string(val)
         elif isinstance(val, int):
             return _intstr(val)
         elif isinstance(val, float):
@@ -77,7 +78,7 @@ def _make_encoder(
                 yield "\n"
             yield indent + "}"
 
-    def format_document(document: Document) -> Iterable[str]:
+    def format_document(document: Document, /) -> Iterable[str]:
         for node in document:
             yield from format_node(node, top_level=True)
             yield "\n"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import partial
 from typing import Any, Callable, List, Optional, Sequence
 
 import tatsu.exceptions
@@ -10,7 +11,10 @@ from .grammar import KdlParser
 from .structure import Document, Node, NodeList, TypedNode
 
 
-TypeFactory = Callable[[str], Any]
+FactoryTypeParam = Optional[str]
+IntFactory = Callable[[FactoryTypeParam, str, int], Any]
+FloatFactory = Callable[[FactoryTypeParam, str], Any]
+StrFactory = Callable[[FactoryTypeParam, str], Any]
 
 ast_parser = KdlParser(whitespace="", parseinfo=False)
 
@@ -23,8 +27,13 @@ class KDLDecodeError(ValueError):
     pass
 
 
-def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
-    def parse_string(ast: AST):
+def _make_decoder(
+    _int_factory: IntFactory,
+    _float_factory: FloatFactory,
+    _str_factory: StrFactory,
+    _ignore_unknown_types: bool,
+):
+    def parse_string(ast: AST, /):
         if not exists(ast, "escstring"):
             return ast["rawstring"]
 
@@ -41,52 +50,79 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
 
         return val
 
-    def parse_identifier(ast: AST) -> str:
+    def parse_identifier(ast: AST, /) -> str:
         if exists(ast, "bare"):
             return "".join(ast["bare"])
 
         return parse_string(ast["string"])
 
-    def parse_value(ast: AST):
-        if exists(ast, "hex"):
-            raw_value = ast["hex"].replace("_", "")
-            return int(raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:], 16)
-        elif exists(ast, "octal"):
-            raw_value = ast["octal"].replace("_", "")
-            return int(raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:], 8)
-        elif exists(ast, "binary"):
-            raw_value = ast["binary"].replace("_", "")
-            return int(raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:], 2)
-        elif exists(ast, "decimal"):
-            raw_value = ast["decimal"].replace("_", "")
-            if "." in raw_value or "e" in raw_value or "E" in raw_value:
-                return _parse_float(raw_value)
-            else:
-                return _parse_int(raw_value)
-        elif exists(ast, "escstring") or exists(ast, "rawstring"):
-            return parse_string(ast)
-        elif exists(ast, "boolean"):
-            return ast["boolean"] == "true"
-        elif exists(ast, "null"):
+    def parse_value(ast: AST, /) -> Any:
+        val = ast["value"]
+        if exists(val, "boolean"):
+            return val["boolean"] == "true"
+        elif exists(val, "null"):
             return None
 
-        raise KDLDecodeError(f"Unknown AST node! Internal failure: {ast!r}")
+        if exists(ast, "type"):
+            val_type = parse_identifier(ast["type"])
+        else:
+            val_type = None
 
-    def parse_args_and_props(ast: Sequence[AST]):
+        if exists(val, "hex"):
+            raw_value = val["hex"].replace("_", "")
+            sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
+            retval = _int_factory(val_type, sanitised_value, 16)
+            fallback_factory = partial(int, base=16)
+        elif exists(val, "octal"):
+            raw_value = val["octal"].replace("_", "")
+            sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
+            retval = _int_factory(val_type, sanitised_value, 8)
+            fallback_factory = partial(int, base=8)
+        elif exists(val, "binary"):
+            raw_value = val["binary"].replace("_", "")
+            sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
+            retval = _int_factory(val_type, sanitised_value, 2)
+            fallback_factory = partial(int, base=2)
+        elif exists(val, "decimal"):
+            raw_value = val["decimal"].replace("_", "")
+            sanitised_value = raw_value
+            if "." in raw_value or "e" in raw_value or "E" in raw_value:
+                retval = _float_factory(val_type, sanitised_value)
+                fallback_factory = float
+            else:
+                retval = _int_factory(val_type, sanitised_value, 10)
+                fallback_factory = partial(int, base=10)
+        elif exists(val, "escstring") or exists(val, "rawstring"):
+            raw_value = parse_string(val)
+            sanitised_value = raw_value
+            retval = _str_factory(val_type, sanitised_value)
+            fallback_factory = lambda x: x
+        else:
+            raise KDLDecodeError(f"Unknown AST node! Internal failure: {val!r}")
+
+        if retval is not None:
+            return retval
+
+        if val_type is not None and _ignore_unknown_types:
+            retval = fallback_factory(sanitised_value)
+        else:
+            raise KDLDecodeError(f"Failed to decode value '{raw_value}'.")
+
+        return retval
+
+    def parse_args_and_props(ast: Sequence[AST], /):
         args = []
         props = {}
         for elem in ast:
             if exists(elem, "commented"):
                 continue
             if exists(elem, "prop"):
-                props[parse_identifier(elem["prop"]["name"])] = parse_value(
-                    elem["prop"]["value"]["value"]
-                )
+                props[parse_identifier(elem["prop"]["name"])] = parse_value(elem["prop"]["value"])
             else:
-                args.append(parse_value(elem["value"]["value"]))
+                args.append(parse_value(elem["value"]))
         return props, args
 
-    def parse_node(ast: AST) -> Optional[Node]:
+    def parse_node(ast: AST, /) -> Optional[Node]:
         if len(ast) == 0 or exists(ast, "commented"):
             return None
 
@@ -107,7 +143,7 @@ def _make_decoder(_parse_int: TypeFactory, _parse_float: TypeFactory):
         else:
             return Node(name, args, props, NodeList(children))
 
-    def parse_nodes(ast: Sequence[AST]) -> List[Node]:
+    def parse_nodes(ast: Sequence[AST], /) -> List[Node]:
         if ast[0] == [None] or (
             isinstance(ast[0], list) and len(ast[0]) > 0 and isinstance(ast[0][0], str)
         ):
@@ -124,11 +160,15 @@ class KDLDecoder:
     def __init__(
         self,
         *,
-        parse_int: Optional[TypeFactory] = None,
-        parse_float: Optional[TypeFactory] = None,
+        parse_int: Optional[IntFactory] = None,
+        parse_float: Optional[FloatFactory] = None,
+        parse_str: Optional[StrFactory] = None,
+        ignore_unknown_types: bool = False,
     ):
-        self.parse_int = parse_int or int
-        self.parse_float = parse_float or float
+        self.parse_int = parse_int or (lambda _, val, base: int(val, base=base))
+        self.parse_float = parse_float or (lambda _, val: float(val))
+        self.parse_str = parse_str or (lambda _, val: val)
+        self.ignore_unknown_types = ignore_unknown_types
 
     def decode(self, s: str, /) -> Document:
         try:
@@ -136,7 +176,9 @@ class KDLDecoder:
         except tatsu.exceptions.ParseException as e:
             raise KDLDecodeError("Failed to parse the document.") from e
 
-        decoder = _make_decoder(self.parse_int, self.parse_float)
+        decoder = _make_decoder(
+            self.parse_int, self.parse_float, self.parse_str, self.ignore_unknown_types
+        )
 
         return Document(NodeList(decoder(ast)))
 
