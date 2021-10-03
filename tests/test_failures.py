@@ -45,3 +45,10 @@ def test_keyword_type_annotations(s: str):
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads(s)
+
+
+def test_unknown_type():
+    errmsg = "^" + re.escape("Failed to decode value 'roflcopter'.") + "$"
+
+    with pytest.raises(KDLDecodeError, match=errmsg):
+        loads('node (unknown)"roflcopter"')

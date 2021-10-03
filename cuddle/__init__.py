@@ -99,7 +99,7 @@ def load(
         return _loads(fp.read())
 
 
-plain_str_parser: StrFactory = lambda _, x: x
+plain_str_parser: StrFactory = lambda _, val: val
 
 
 __all__ = (

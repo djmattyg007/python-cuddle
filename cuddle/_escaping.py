@@ -3,7 +3,6 @@ from __future__ import annotations
 
 named_escapes = {
     "\\": "\\",
-    "/": "/",
     "r": "\r",
     "n": "\n",
     "t": "\t",

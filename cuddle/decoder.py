@@ -103,12 +103,13 @@ def _make_decoder(
         if retval is not None:
             return retval
 
-        if val_type is not None and _ignore_unknown_types:
-            retval = fallback_factory(sanitised_value)
+        if val_type is None:
+            return fallback_factory(sanitised_value)
+
+        if _ignore_unknown_types:
+            return fallback_factory(sanitised_value)
         else:
             raise KDLDecodeError(f"Failed to decode value '{raw_value}'.")
-
-        return retval
 
     def parse_args_and_props(ast: Sequence[AST], /):
         args = []
@@ -142,7 +143,7 @@ def _make_decoder(
         else:
             node_type = None
 
-        return Node(name, node_type, args, props, NodeList(children))
+        return Node(name, node_type, arguments=args, properties=props, children=NodeList(children))
 
     def parse_nodes(ast: Sequence[AST], /) -> List[Node]:
         if ast[0] == [None] or (
@@ -157,6 +158,37 @@ def _make_decoder(
     return parse_nodes
 
 
+def extended_str_parser(val_type: str, val: str) -> Any:
+    from base64 import b64decode
+    from datetime import date, datetime, time
+    from decimal import Decimal
+    from ipaddress import IPv4Address, IPv6Address
+    from re import compile as re_compile
+    from urllib.parse import urlparse
+    from uuid import UUID
+
+    if val_type == "base64":
+        return b64decode(val, validate=True)
+    elif val_type == "date-time" or val_type == "datetime":
+        return datetime.fromisoformat(val)
+    elif val_type == "date":
+        return date.fromisoformat(val)
+    elif val_type == "time":
+        return time.fromisoformat(val)
+    elif val_type == "decimal":
+        return Decimal(val)
+    elif val_type == "ipv4":
+        return IPv4Address(val)
+    elif val_type == "ipv6":
+        return IPv6Address(val)
+    elif val_type == "regex":
+        return re_compile(val)
+    elif val_type == "url":
+        return urlparse(val)
+    elif val_type == "uuid":
+        return UUID(val)
+
+
 class KDLDecoder:
     def __init__(
         self,
@@ -166,9 +198,9 @@ class KDLDecoder:
         parse_str: Optional[StrFactory] = None,
         ignore_unknown_types: bool = False,
     ):
-        self.parse_int = parse_int or (lambda _, val, base: int(val, base=base))
-        self.parse_float = parse_float or (lambda _, val: float(val))
-        self.parse_str = parse_str or (lambda _, val: val)
+        self.parse_int: IntFactory = parse_int or (lambda _, val, base: int(val, base=base))
+        self.parse_float: FloatFactory = parse_float or (lambda _, val: float(val))
+        self.parse_str: StrFactory = parse_str or extended_str_parser
         self.ignore_unknown_types = ignore_unknown_types
 
     def decode(self, s: str, /) -> Document:

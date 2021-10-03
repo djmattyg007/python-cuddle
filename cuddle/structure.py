@@ -5,13 +5,30 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
 
 class Node:
     def __init__(
-        self, name: str, node_type: Optional[str], arguments: List[Any], properties: Dict[str, Any], children: NodeList
+        self, name: str, node_type: Optional[str], /, *, arguments: Optional[List[Any]] = None, properties: Optional[Dict[str, Any]] = None, children: Optional[Union[NodeList, list]] = None
     ):
         self.name = name
         self.node_type = node_type
-        self.arguments = arguments
-        self.properties = properties
-        self.children = children
+
+        self.arguments: List[Any]
+        if arguments is not None:
+            self.arguments = arguments
+        else:
+            self.arguments = []
+
+        self.properties: Dict[str, Any]
+        if properties is not None:
+            self.properties = properties
+        else:
+            self.properties = {}
+
+        self.children: NodeList
+        if children is None:
+            self.children = NodeList([])
+        elif isinstance(children, list):
+            self.children = NodeList(children)
+        else:
+            self.children = children
 
     def __repr__(self) -> str:
         details = [f"name={self.name!r}"]
