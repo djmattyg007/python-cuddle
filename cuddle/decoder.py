@@ -8,7 +8,7 @@ from tatsu.ast import AST
 
 from ._escaping import named_escapes
 from .grammar import KdlParser
-from .structure import Document, Node, NodeList, TypedNode
+from .structure import Document, Node, NodeList
 
 
 FactoryTypeParam = Optional[str]
@@ -139,9 +139,10 @@ def _make_decoder(
 
         if exists(ast, "type"):
             node_type = parse_identifier(ast["type"])
-            return TypedNode(name, node_type, args, props, NodeList(children))
         else:
-            return Node(name, args, props, NodeList(children))
+            node_type = None
+
+        return Node(name, node_type, args, props, NodeList(children))
 
     def parse_nodes(ast: Sequence[AST], /) -> List[Node]:
         if ast[0] == [None] or (

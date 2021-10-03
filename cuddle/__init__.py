@@ -6,7 +6,7 @@ from typing import IO, Optional, Union
 
 from .decoder import FloatFactory, IntFactory, KDLDecodeError, KDLDecoder, StrFactory
 from .encoder import DefaultHandler, KDLEncoder, extended_default
-from .structure import Document, Node, NodeList, TypedNode
+from .structure import Document, Node, NodeList
 
 
 def dumps(
@@ -115,5 +115,4 @@ __all__ = (
     "Document",
     "Node",
     "NodeList",
-    "TypedNode",
 )

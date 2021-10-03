@@ -1,19 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Iterator, List, Union
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
 
 
 class Node:
     def __init__(
-        self, name: str, arguments: List[Any], properties: Dict[str, Any], children: NodeList
+        self, name: str, node_type: Optional[str], arguments: List[Any], properties: Dict[str, Any], children: NodeList
     ):
         self.name = name
+        self.node_type = node_type
         self.arguments = arguments
         self.properties = properties
         self.children = children
 
     def __repr__(self) -> str:
         details = [f"name={self.name!r}"]
+        if self.node_type:
+            details.append(f"type={self.node_type!r}")
         if self.arguments:
             details.append(f"arguments={self.arguments!r}")
         if self.properties:
@@ -30,19 +33,6 @@ class Node:
             return self.arguments[name]
         else:
             return self.properties[name]
-
-
-class TypedNode(Node):
-    def __init__(
-        self,
-        name: str,
-        node_type: str,
-        arguments: List[Any],
-        properties: Dict[str, Any],
-        children: NodeList,
-    ):
-        super().__init__(name, arguments, properties, children)
-        self.node_type = node_type
 
 
 class NodeList:
@@ -76,7 +66,6 @@ class Document:
 
 __all__ = (
     "Node",
-    "TypedNode",
     "NodeList",
     "Document",
 )

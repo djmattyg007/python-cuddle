@@ -1,6 +1,6 @@
 import pytest
 
-from cuddle import Node, TypedNode, dumps, loads
+from cuddle import Node, dumps, loads
 
 
 def _check_lens(node: Node, /, *, arg_count=0, prop_count=0, child_count=0) -> None:
@@ -329,7 +329,6 @@ def test_quoted_keyword_type_annotations(s: str, node_type: str):
     doc = loads(s)
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
-    assert isinstance(node, TypedNode)
     assert node.name == "node"
     assert node.node_type == node_type
     _check_lens(node)
