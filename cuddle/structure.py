@@ -5,7 +5,14 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
 
 class Node:
     def __init__(
-        self, name: str, node_type: Optional[str], /, *, arguments: Optional[List[Any]] = None, properties: Optional[Dict[str, Any]] = None, children: Optional[Union[NodeList, list]] = None
+        self,
+        name: str,
+        node_type: Optional[str],
+        /,
+        *,
+        arguments: Optional[List[Any]] = None,
+        properties: Optional[Dict[str, Any]] = None,
+        children: Optional[Union[NodeList, list]] = None,
     ):
         self.name = name
         self.node_type = node_type

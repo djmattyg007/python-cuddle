@@ -2,10 +2,11 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
 from re import compile as re_compile
-from urllib.parse import ParseResult as UrlParseResult, urlparse
+from urllib.parse import ParseResult as UrlParseResult
+from urllib.parse import urlparse
 from uuid import UUID
 
-from cuddle import Document, NodeList, Node, dumps, loads
+from cuddle import Document, Node, NodeList, dumps, loads
 
 
 def _check_lens(node: Node, /, *, arg_count=0, prop_count=0, child_count=0) -> None:
