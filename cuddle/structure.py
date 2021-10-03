@@ -56,6 +56,9 @@ class NodeList:
     def __init__(self, nodes: List[Node]):
         self.nodes = nodes
 
+    def __repr__(self) -> str:
+        return repr(self.nodes)
+
     def __len__(self) -> int:
         return len(self.nodes)
 
@@ -76,6 +79,9 @@ class NodeList:
 class Document:
     def __init__(self, nodes: NodeList):
         self.nodes = nodes
+
+    def __repr__(self) -> str:
+        return f"Document({self.nodes!r})"
 
     def __iter__(self) -> Iterator[Node]:
         return self.nodes.__iter__()
