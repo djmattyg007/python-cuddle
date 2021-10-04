@@ -60,11 +60,11 @@ def _make_decoder(
         elif exists(val, "null"):
             return None
 
+        val_type: Optional[str] = None
         if exists(ast, "type"):
             val_type = parse_identifier(ast["type"])
-        else:
-            val_type = None
 
+        fallback_factory: Callable[[str], Any]
         if exists(val, "hex"):
             raw_value = val["hex"].replace("_", "")
             sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
@@ -132,10 +132,9 @@ def _make_decoder(
         if exists(ast, "children") and not exists(ast["children"], "commented"):
             children = parse_nodes(ast["children"]["children"])
 
+        node_type: Optional[str] = None
         if exists(ast, "type"):
             node_type = parse_identifier(ast["type"])
-        else:
-            node_type = None
 
         return Node(name, node_type, arguments=args, properties=props, children=NodeList(children))
 
@@ -152,7 +151,7 @@ def _make_decoder(
     return parse_nodes
 
 
-def extended_str_parser(val_type: str, val: str) -> Any:
+def extended_str_parser(val_type: Optional[str], val: str) -> Any:
     from base64 import b64decode
     from datetime import date, datetime, time
     from decimal import Decimal
