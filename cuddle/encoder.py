@@ -51,7 +51,7 @@ def _make_encoder(
             return _floatstr(val)
 
         value_type, value_string = _default(val)
-        if value_type:
+        if value_type is not None:
             return f"({value_type}){format_string(value_string)}"
         else:
             return format_string(value_string)
@@ -61,8 +61,11 @@ def _make_encoder(
             indent = ""
         else:
             indent = _indent
+            yield indent
 
-        yield indent + format_identifier(node.name)
+        if node.node_type is not None:
+            yield f"({node.node_type})"
+        yield format_identifier(node.name)
 
         for val in node.arguments:
             yield " " + format_value(val)

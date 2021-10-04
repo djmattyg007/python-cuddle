@@ -66,24 +66,37 @@ def _make_decoder(
 
         fallback_factory: Callable[[str], Any]
         if exists(val, "hex"):
-            raw_value = val["hex"].replace("_", "")
-            sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
+            raw_value = val["hex"]
+            cleaned_value = raw_value.replace("_", "")
+            if cleaned_value[0] == "0":
+                sanitised_value = cleaned_value[2:]
+            else:
+                sanitised_value = cleaned_value[0] + cleaned_value[3:]
             retval = _int_factory(val_type, sanitised_value, 16)
             fallback_factory = partial(int, base=16)
         elif exists(val, "octal"):
-            raw_value = val["octal"].replace("_", "")
-            sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
+            raw_value = val["octal"]
+            cleaned_value = raw_value.replace("_", "")
+            if cleaned_value[0] == "0":
+                sanitised_value = cleaned_value[2:]
+            else:
+                sanitised_value = cleaned_value[0] + cleaned_value[3:]
             retval = _int_factory(val_type, sanitised_value, 8)
             fallback_factory = partial(int, base=8)
         elif exists(val, "binary"):
-            raw_value = val["binary"].replace("_", "")
-            sanitised_value = raw_value[0] + raw_value[3:] if raw_value[0] != "0" else raw_value[2:]
+            raw_value = val["binary"]
+            cleaned_value = raw_value.replace("_", "")
+            if cleaned_value[0] == "0":
+                sanitised_value = cleaned_value[2:]
+            else:
+                sanitised_value = cleaned_value[0] + cleaned_value[3:]
             retval = _int_factory(val_type, sanitised_value, 2)
             fallback_factory = partial(int, base=2)
         elif exists(val, "decimal"):
-            raw_value = val["decimal"].replace("_", "")
-            sanitised_value = raw_value
-            if "." in raw_value or "e" in raw_value or "E" in raw_value:
+            raw_value = val["decimal"]
+            cleaned_value = raw_value.replace("_", "")
+            sanitised_value = cleaned_value
+            if "." in cleaned_value or "e" in cleaned_value or "E" in cleaned_value:
                 retval = _float_factory(val_type, sanitised_value)
                 fallback_factory = float
             else:
@@ -103,7 +116,7 @@ def _make_decoder(
         if val_type is None or _ignore_unknown_types:
             return fallback_factory(sanitised_value)
 
-        raise KDLDecodeError(f"Failed to decode value '{raw_value}'.")
+        raise KDLDecodeError(f"Failed to decode value {raw_value!r}.")
 
     def parse_args_and_props(ast: Sequence[AST], /):
         args = []
