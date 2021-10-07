@@ -76,7 +76,10 @@ def _make_decoder(
 
     def parse_identifier(ast: AST, /) -> str:
         if exists(ast, "bare"):
-            return "".join(ast["bare"])
+            bare = "".join(ast["bare"])
+            if bare in ("true", "false", "null"):
+                raise KDLDecodeError(f"Illegal bare identifier {bare!r}.")
+            return bare
 
         return parse_string(ast["string"])
 

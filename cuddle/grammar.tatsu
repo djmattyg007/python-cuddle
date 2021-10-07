@@ -5,17 +5,21 @@ start = {ws} @:nodes {ws} $;
 
 nodes = {linespace} {@+:node {linespace}};
 node = [commented:'/-' {ws}] [type:type] name:identifier {node_space {node_space} args_and_props+:node_args_and_props} [{node_space} children:node_children {ws}] {node_space} node_terminator;
-node_args_and_props = [commented:'/-' {node_space}] (value:value | prop:prop);
+node_args_and_props = [commented:'/-' {node_space}] (prop:prop | value:value);
 node_children = [commented:'/-' {node_space}] '{' children:nodes '}';
 node_space = ({ws} escline {ws}) | {ws}+;
 node_terminator = commented:single_line_comment | newline | ';' | $;
 
 identifier = string:string | bare:bare_identifier;
-bare_identifier = !digit !keyword !(node_terminator ) @+:first_identifier_char {@+:rest_identifier_char};
+# Ideally we'd be able to exclude 'keyword' from being a valid 'bare_identiifer' value.
+# Unfortunately I can't work out how to make that work without it failing on any bare
+# identifier that simply starts with one of the relevant sequences.
+# The validation is therefore handled after parsing, in the decoder.
+bare_identifier = !(node_terminator ) @+:first_identifier_char {@+:rest_identifier_char};
 digit = /[0-9]/;
-keyword = boolean | null;
-first_identifier_char = !linespace !/[\\<(){};\[=,"]/ /./;
+first_identifier_char = !sign !digit !linespace !/[\\<(){};\[=,"]/ /./;
 rest_identifier_char = !linespace !/[\\();=,"]/ /./;
+keyword = boolean | null;
 prop = name:identifier '=' value:value;
 value = [type:type] value:(number | string | keyword);
 type = '(' @:identifier ')';

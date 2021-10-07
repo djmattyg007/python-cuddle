@@ -35,7 +35,7 @@ def _make_encoder(
         return f'"{inner}"'
 
     def format_identifier(ident: str, /) -> str:
-        if ident_re.match(ident):
+        if ident_re.match(ident) and ident not in ("true", "false", "null"):
             return ident
         else:
             return format_string(ident)
