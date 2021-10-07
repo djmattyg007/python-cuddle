@@ -107,6 +107,8 @@ def default_value_encoder(val: Any, _ident_fmt: IdentifierFormatter, /) -> Value
     if isinstance(val, Decimal):
         return "decimal", str(val)
 
+    return None
+
 
 def extended_value_encoder(val: Any, ident_fmt: IdentifierFormatter, /) -> ValueEncoderResult:
     default_result = default_value_encoder(val, ident_fmt)
