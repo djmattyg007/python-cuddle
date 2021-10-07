@@ -8,4 +8,4 @@ contents {
 }
 dpsojf 5 counter=2
 "123"
-foo "bar" 291 r#"foobar\podasjfpoj"# 123 123.4 0.123 (decimal)"0.123"
+foo "bar" 291 r#"foobar\podasjfpoj"# 123 123.4 0.123 0.123

@@ -232,13 +232,7 @@ def default_float_parser(val_type: FactoryTypeParam, val: str) -> Any:
     decimal_val_types = ("decimal64", "decimal128")
 
     if val_type is None:
-        if "e" in val or "E" in val:
-            val_type = "decimal128"
-        else:
-            # Python floating-point numbers are limited, and will magically become "inf".
-            # Consider doing something hacky like calculating the length of the input string,
-            # and if it's over a certain amount, force it to an instance of Decimal.
-            val_type = "f64"
+        return float(val)
 
     if val_type in float_val_types:
         return float(val)
