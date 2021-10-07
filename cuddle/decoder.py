@@ -182,7 +182,10 @@ def _make_decoder(
         return Node(name, node_type, arguments=args, properties=props, children=NodeList(children))
 
     def parse_nodes(ast: Sequence[AST], /) -> List[Node]:
-        if ast[0] == [None] or (
+        # TODO: Figure out why empty documents are so strangely handled
+        if ast[0] == [None]:
+            return []
+        elif (
             isinstance(ast[0], list)
             and len(ast[0]) > 0
             and (
@@ -190,7 +193,6 @@ def _make_decoder(
                 or (isinstance(ast[0][0], tuple) and len(ast[0][0]) > 0 and ast[0][0][0] == "//")
             )
         ):
-            # TODO: Figure out why empty documents are so strangely handled
             return []
 
         nodes = map(parse_node, ast)
