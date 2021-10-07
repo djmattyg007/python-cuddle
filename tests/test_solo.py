@@ -339,3 +339,33 @@ def test_single_line_comment_with_no_newline():
     # would result in a stack overflow.
     doc = loads("//test")
     assert len(doc.nodes) == 0
+
+
+def test_single_line_comment_with_leading_newline():
+    doc = loads("\n//test")
+    assert len(doc.nodes) == 0
+
+
+def test_single_line_comment_surrounded_by_newlines():
+    doc = loads("\n//test\n")
+    assert len(doc.nodes) == 0
+
+
+def test_single_line_comment_with_newline():
+    doc = loads("//test\n")
+    assert len(doc.nodes) == 0
+
+
+def test_only_multiple_comments():
+    doc = loads("//comment1\n//comment2")
+    assert len(doc.nodes) == 0
+
+
+def test_single_line_comment_either_side_of_node():
+    doc1 = loads("a\n//comment")
+    assert len(doc1.nodes) == 1
+
+    doc2 = loads("//comment\na")
+    assert len(doc2.nodes) == 1
+
+    assert dumps(doc1) == dumps(doc2)

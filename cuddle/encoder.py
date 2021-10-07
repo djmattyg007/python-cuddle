@@ -5,23 +5,26 @@ from typing import Any, Callable, Iterable, Optional, Tuple, Union
 import regex
 
 from ._escaping import named_escape_inverse
+from .exception import KDLEncodeTypeError
 from .structure import Document, Node
 
 
-DefaultHandlerResult = Tuple[Optional[str], str]
-DefaultHandler = Callable[[Any], Optional[DefaultHandlerResult]]
+IdentifierFormatter = Callable[[str], str]
+ValueEncoderResult = Union[None, str, Tuple[Optional[str], str]]
+ValueEncoder = Callable[[Any, IdentifierFormatter], ValueEncoderResult]
+
 
 ident_re = regex.compile(
-    r'^[^\\<{;\[=,"0-9\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029][^\\;=,"\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029]*$'
+    r'^[^/\\<{;\[=,"0-9\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029][^/\\;=,"\t \u00A0\u1680\u2000-\u200A\u202F\u205F\u3000\uFFEF\r\n\u0085\u000C\u2028\u2029]*$'
 )
+
+_intstr = int.__repr__
+_floatstr = float.__repr__
 
 
 def _make_encoder(
-    _indent: str, _default: Callable[[Any], DefaultHandlerResult]
+    _indent: str, _value_encoder: ValueEncoder
 ) -> Callable[[Document], Iterable[str]]:
-    _intstr = int.__repr__
-    _floatstr = float.__repr__
-
     def format_string(val: str, /) -> str:
         if "\\" in val and '"' not in val:
             return 'r#"%s"#' % val
@@ -38,21 +41,18 @@ def _make_encoder(
             return format_string(ident)
 
     def format_value(val: Any, /) -> str:
-        if val is None:
-            return "null"
-        elif isinstance(val, bool):
-            return "true" if val else "false"
+        result = _value_encoder(val, format_identifier)
+        if result is None:
+            raise KDLEncodeTypeError(
+                f"Object of type {val.__class__.__name__} is not KDL serializable"
+            )
 
-        if isinstance(val, str):
-            return format_string(val)
-        elif isinstance(val, int):
-            return _intstr(val)
-        elif isinstance(val, float):
-            return _floatstr(val)
+        if isinstance(result, str):
+            return result
 
-        value_type, value_string = _default(val)
+        value_type, value_string = result
         if value_type is not None:
-            return f"({value_type}){format_string(value_string)}"
+            return f"({format_identifier(value_type)}){format_string(value_string)}"
         else:
             return format_string(value_string)
 
@@ -64,7 +64,7 @@ def _make_encoder(
             yield indent
 
         if node.node_type is not None:
-            yield f"({node.node_type})"
+            yield f"({format_identifier(node.node_type)})"
         yield format_identifier(node.name)
 
         for val in node.arguments:
@@ -89,10 +89,32 @@ def _make_encoder(
     return format_document
 
 
-def extended_default(o: Any) -> Optional[DefaultHandlerResult]:
+def default_value_encoder(val: Any, _ident_fmt: IdentifierFormatter, /) -> ValueEncoderResult:
+    if val is None:
+        return "null"
+    elif isinstance(val, bool):
+        return "true" if val else "false"
+    elif isinstance(val, int):
+        return _intstr(val)
+    elif isinstance(val, float):
+        return _floatstr(val)
+
+    if isinstance(val, str):
+        return None, val
+
+    from decimal import Decimal
+
+    if isinstance(val, Decimal):
+        return "decimal", str(val)
+
+
+def extended_value_encoder(val: Any, ident_fmt: IdentifierFormatter, /) -> ValueEncoderResult:
+    default_result = default_value_encoder(val, ident_fmt)
+    if default_result is not None:
+        return default_result
+
     from base64 import b64encode
     from datetime import date, datetime, time
-    from decimal import Decimal
     from ipaddress import IPv4Address, IPv6Address
     from re import Pattern as RePattern
     from urllib.parse import DefragResult as UrlDefragResult
@@ -100,26 +122,24 @@ def extended_default(o: Any) -> Optional[DefaultHandlerResult]:
     from urllib.parse import SplitResult as UrlSplitResult
     from uuid import UUID
 
-    if isinstance(o, bytes):
-        return "base64", b64encode(o).decode("utf-8")
-    elif isinstance(o, datetime):
-        return "date-time", o.isoformat()
-    elif isinstance(o, date):
-        return "date", o.isoformat()
-    elif isinstance(o, time):
-        return "time", o.isoformat()
-    elif isinstance(o, Decimal):
-        return "decimal", str(o)
-    elif isinstance(o, IPv4Address):
-        return "ipv4", str(o)
-    elif isinstance(o, IPv6Address):
-        return "ipv6", str(o)
-    elif isinstance(o, (RePattern, regex.Pattern)):
-        return "regex", o.pattern
-    elif isinstance(o, (UrlDefragResult, UrlParseResult, UrlSplitResult)):
-        return "url", o.geturl()
-    elif isinstance(o, UUID):
-        return "uuid", str(o)
+    if isinstance(val, bytes):
+        return "base64", b64encode(val).decode("utf-8")
+    elif isinstance(val, datetime):
+        return "date-time", val.isoformat()
+    elif isinstance(val, date):
+        return "date", val.isoformat()
+    elif isinstance(val, time):
+        return "time", val.isoformat()
+    elif isinstance(val, IPv4Address):
+        return "ipv4", str(val)
+    elif isinstance(val, IPv6Address):
+        return "ipv6", str(val)
+    elif isinstance(val, (RePattern, regex.Pattern)):
+        return "regex", val.pattern
+    elif isinstance(val, (UrlDefragResult, UrlParseResult, UrlSplitResult)):
+        return "url", val.geturl()
+    elif isinstance(val, UUID):
+        return "uuid", str(val)
 
 
 class KDLEncoder:
@@ -127,8 +147,7 @@ class KDLEncoder:
         self,
         *,
         indent: Union[str, int, None] = None,
-        default: Optional[DefaultHandler] = None,
-        use_extended_default: bool = True,
+        value_encoder: Optional[ValueEncoder] = None,
     ):
         self.indent: str
         if isinstance(indent, str):
@@ -138,21 +157,11 @@ class KDLEncoder:
         else:
             self.indent = "  "
 
-        self.default_handler: Optional[DefaultHandler]
-        if default is not None:
-            self.default_handler = default
-        elif use_extended_default:
-            self.default_handler = extended_default
+        self.value_encoder: ValueEncoder
+        if value_encoder is not None:
+            self.value_encoder = value_encoder
         else:
-            self.default_handler = None
-
-    def default(self, o: Any) -> DefaultHandlerResult:
-        if self.default_handler:
-            result = self.default_handler(o)
-            if result is not None:
-                return result
-
-        raise TypeError(f"Object of type {o.__class__.__name__} is not KDL serializable")
+            self.value_encoder = extended_value_encoder
 
     def encode(self, doc: Document) -> str:
         chunks = self.iterencode(doc)
@@ -161,12 +170,15 @@ class KDLEncoder:
         return "".join(chunks)
 
     def iterencode(self, doc: Document) -> Iterable[str]:
-        encoder = _make_encoder(self.indent, self.default)
+        encoder = _make_encoder(self.indent, self.value_encoder)
         return encoder(doc)
 
 
 __all__ = (
     "KDLEncoder",
-    "DefaultHandler",
-    "extended_default",
+    "IdentifierFormatter",
+    "ValueEncoder",
+    "ValueEncoderResult",
+    "default_value_encoder",
+    "extended_value_encoder",
 )

@@ -4,9 +4,28 @@ from functools import partial
 from os import PathLike
 from typing import IO, Optional, Union
 
-from .decoder import FloatFactory, IntFactory, KDLDecoder, StrFactory, extended_str_parser
-from .encoder import DefaultHandler, KDLEncoder, extended_default
-from .exception import KDLDecodeError
+from .decoder import (
+    BoolFactory,
+    FloatFactory,
+    IntFactory,
+    KDLDecoder,
+    NullFactory,
+    StrFactory,
+    default_bool_parser,
+    default_float_parser,
+    default_int_parser,
+    default_null_parser,
+    default_str_parser,
+)
+from .encoder import (
+    IdentifierFormatter,
+    KDLEncoder,
+    ValueEncoder,
+    ValueEncoderResult,
+    default_value_encoder,
+    extended_value_encoder,
+)
+from .exception import KDLDecodeError, KDLEncodeTypeError
 from .structure import Document, Node, NodeList
 
 
@@ -16,12 +35,12 @@ def dumps(
     *,
     cls=None,
     indent: Union[str, int, None] = None,
-    default: Optional[DefaultHandler] = None,
+    value_encoder: Optional[ValueEncoder] = None,
 ) -> str:
     if cls is None:
         cls = KDLEncoder
 
-    encoder = cls(indent=indent, default=default)
+    encoder = cls(indent=indent, value_encoder=value_encoder)
     return encoder.encode(doc)
 
 
@@ -32,12 +51,12 @@ def dump(
     *,
     cls=None,
     indent: Union[str, int, None] = None,
-    default: Optional[DefaultHandler] = None,
+    value_encoder: Optional[ValueEncoder] = None,
 ) -> None:
     if cls is None:
         cls = KDLEncoder
 
-    encoder = cls(indent=indent, default=default)
+    encoder = cls(indent=indent, value_encoder=value_encoder)
     iterable = encoder.iterencode(doc)
 
     if isinstance(fp, PathLike):
@@ -54,6 +73,8 @@ def loads(
     /,
     *,
     cls=None,
+    parse_null: Optional[NullFactory] = None,
+    parse_bool: Optional[BoolFactory] = None,
     parse_int: Optional[IntFactory] = None,
     parse_float: Optional[FloatFactory] = None,
     parse_str: Optional[StrFactory] = None,
@@ -66,6 +87,8 @@ def loads(
         cls = KDLDecoder
 
     decoder = cls(
+        parse_null=parse_null,
+        parse_bool=parse_bool,
         parse_int=parse_int,
         parse_float=parse_float,
         parse_str=parse_str,
@@ -79,6 +102,8 @@ def load(
     /,
     *,
     cls=None,
+    parse_null: Optional[NullFactory] = None,
+    parse_bool: Optional[BoolFactory] = None,
     parse_int: Optional[IntFactory] = None,
     parse_float: Optional[FloatFactory] = None,
     parse_str: Optional[StrFactory] = None,
@@ -87,6 +112,8 @@ def load(
     _loads = partial(
         loads,
         cls=cls,
+        parse_null=parse_null,
+        parse_bool=parse_bool,
         parse_int=parse_int,
         parse_float=parse_float,
         parse_str=parse_str,
@@ -108,12 +135,21 @@ __all__ = (
     "dumps",
     "load",
     "loads",
-    "plain_str_parser",
-    "extended_str_parser",
     "KDLDecoder",
     "KDLDecodeError",
+    "plain_str_parser",
+    "default_null_parser",
+    "default_bool_parser",
+    "default_int_parser",
+    "default_float_parser",
+    "default_str_parser",
     "KDLEncoder",
-    "extended_default",
+    "KDLEncodeTypeError",
+    "IdentifierFormatter",
+    "ValueEncoder",
+    "ValueEncoderResult",
+    "default_value_encoder",
+    "extended_value_encoder",
     "Document",
     "Node",
     "NodeList",

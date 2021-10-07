@@ -2,4 +2,11 @@ class KDLDecodeError(ValueError):
     pass
 
 
-__all__ = ("KDLDecodeError",)
+class KDLEncodeTypeError(TypeError):
+    pass
+
+
+__all__ = (
+    "KDLDecodeError",
+    "KDLEncodeTypeError",
+)

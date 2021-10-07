@@ -424,6 +424,10 @@ class KdlParser(Parser):
         )
 
     @tatsumasu()
+    def _hex_digit_(self):  # noqa
+        self._pattern('[0-9a-fA-F]')
+
+    @tatsumasu()
     def _raw_string_(self):  # noqa
         self._token('r')
         self._raw_string_hash_()
@@ -469,16 +473,23 @@ class KdlParser(Parser):
                 self._decimal_()
             self._error(
                 'expecting one of: '
-                '[+\\-]?0x[0-9a-fA-F][0-9a-fA-F_]* <hex>'
-                '[+\\-]?0o[0-7][0-7_]* <octal>'
-                '[+\\-]?0b[01][01_]* <binary> [+\\-]?[0-9]['
-                '0-9_]*(\\.[0-9][0-9_]*)?([eE][+-]?[0-9][0'
-                '-9_]*)? <decimal>'
+                "'0x' '+' '-' <sign> <hex> '0o' <octal>"
+                "'0b' <binary> <integer> <decimal>"
             )
 
     @tatsumasu()
     def _decimal_(self):  # noqa
-        self._pattern('[+\\-]?[0-9][0-9_]*(\\.[0-9][0-9_]*)?([eE][+-]?[0-9][0-9_]*)?')
+        with self._group():
+            self._integer_()
+            with self._optional():
+                self._token('.')
+                self._pattern('[0-9]')
+
+                def block1():
+                    self._pattern('[0-9_]')
+                self._closure(block1)
+            with self._optional():
+                self._exponent_()
         self.name_last_node('decimal')
         self._define(
             ['decimal'],
@@ -486,8 +497,56 @@ class KdlParser(Parser):
         )
 
     @tatsumasu()
+    def _exponent_(self):  # noqa
+        with self._group():
+            with self._choice():
+                with self._option():
+                    self._token('e')
+                with self._option():
+                    self._token('E')
+                self._error(
+                    'expecting one of: '
+                    "'e' 'E'"
+                )
+        self._integer_()
+
+    @tatsumasu()
+    def _integer_(self):  # noqa
+        with self._optional():
+            self._sign_()
+        self._pattern('[0-9][0-9_]*')
+
+    @tatsumasu()
+    def _sign_(self):  # noqa
+        with self._choice():
+            with self._option():
+                self._token('+')
+            with self._option():
+                self._token('-')
+            self._error(
+                'expecting one of: '
+                "'+' '-'"
+            )
+
+    @tatsumasu()
     def _hex_(self):  # noqa
-        self._pattern('[+\\-]?0x[0-9a-fA-F][0-9a-fA-F_]*')
+        with self._group():
+            with self._optional():
+                self._sign_()
+            self._token('0x')
+            self._hex_digit_()
+
+            def block1():
+                with self._choice():
+                    with self._option():
+                        self._hex_digit_()
+                    with self._option():
+                        self._token('_')
+                    self._error(
+                        'expecting one of: '
+                        "<hex_digit> '_'"
+                    )
+            self._closure(block1)
         self.name_last_node('hex')
         self._define(
             ['hex'],
@@ -496,7 +555,15 @@ class KdlParser(Parser):
 
     @tatsumasu()
     def _octal_(self):  # noqa
-        self._pattern('[+\\-]?0o[0-7][0-7_]*')
+        with self._group():
+            with self._optional():
+                self._sign_()
+            self._token('0o')
+            self._pattern('[0-7]')
+
+            def block1():
+                self._pattern('[0-7_]')
+            self._closure(block1)
         self.name_last_node('octal')
         self._define(
             ['octal'],
@@ -505,7 +572,34 @@ class KdlParser(Parser):
 
     @tatsumasu()
     def _binary_(self):  # noqa
-        self._pattern('[+\\-]?0b[01][01_]*')
+        with self._group():
+            with self._optional():
+                self._sign_()
+            self._token('0b')
+            with self._group():
+                with self._choice():
+                    with self._option():
+                        self._token('0')
+                    with self._option():
+                        self._token('1')
+                    self._error(
+                        'expecting one of: '
+                        "'0' '1'"
+                    )
+
+            def block2():
+                with self._choice():
+                    with self._option():
+                        self._token('0')
+                    with self._option():
+                        self._token('1')
+                    with self._option():
+                        self._token('_')
+                    self._error(
+                        'expecting one of: '
+                        "'0' '1' '_'"
+                    )
+            self._closure(block2)
         self.name_last_node('binary')
         self._define(
             ['binary'],
@@ -711,6 +805,9 @@ class KdlSemantics(object):
     def escape(self, ast):  # noqa
         return ast
 
+    def hex_digit(self, ast):  # noqa
+        return ast
+
     def raw_string(self, ast):  # noqa
         return ast
 
@@ -724,6 +821,15 @@ class KdlSemantics(object):
         return ast
 
     def decimal(self, ast):  # noqa
+        return ast
+
+    def exponent(self, ast):  # noqa
+        return ast
+
+    def integer(self, ast):  # noqa
+        return ast
+
+    def sign(self, ast):  # noqa
         return ast
 
     def hex(self, ast):  # noqa

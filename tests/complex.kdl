@@ -24,4 +24,4 @@ and a unicode escape \u{9}"
  // another comment
 "dpsojf" counter=2 0b1_01
 r#"123"#//EOL comment
-foo "bar" 0x123 r#"foobar\podasjfpoj"# 123 123.4 123e-3 // EOL comment 2
+foo "bar" 0x123 r#"foobar\podasjfpoj"# 123 123.4 0.123 123e-3 // EOL comment 2

@@ -24,6 +24,7 @@ string = raw_string | escaped_string;
 escaped_string = '"' escstring:{character}* '"';
 character = '\\' escape:escape | char:/[^"]/;
 escape = named:/[\\\/bfnrt]/ | 'u{' unichar:/[0-9a-fA-F]{1,6}/ '}';
+hex_digit = /[0-9a-fA-F]/;
 
 raw_string = 'r' rawstring:raw_string_hash;
 raw_string_hash = '#' @:raw_string_hash '#' | @:raw_string_quotes;
@@ -31,10 +32,18 @@ raw_string_quotes = '"' @:/[^"]*/ '"';
 
 number = hex | octal | binary | decimal;
 
-decimal = decimal:/[+\-]?[0-9][0-9_]*(\.[0-9][0-9_]*)?([eE][+-]?[0-9][0-9_]*)?/;
-hex = hex:/[+\-]?0x[0-9a-fA-F][0-9a-fA-F_]*/;
-octal = octal:/[+\-]?0o[0-7][0-7_]*/;
-binary = binary:/[+\-]?0b[01][01_]*/;
+decimal = decimal:(integer ['.' /[0-9]/ {/[0-9_]/}] [exponent]);
+#decimal = decimal:/[+\-]?[0-9][0-9_]*(\.[0-9][0-9_]*)?([eE][+-]?[0-9][0-9_]*)?/;
+exponent = ('e' | 'E') integer;
+integer = [sign] /[0-9][0-9_]*/;
+sign = '+' | '-';
+
+hex = hex:([sign] '0x' hex_digit {hex_digit | '_'});
+#hex = hex:/[+\-]?0x[0-9a-fA-F][0-9a-fA-F_]*/;
+octal = octal:([sign] '0o' /[0-7]/ {/[0-7_]/});
+#octal = octal:/[+\-]?0o[0-7][0-7_]*/;
+binary = binary:([sign] '0b' ('0' | '1') {'0' | '1' | '_'});
+#binary = binary:/[+\-]?0b[01][01_]*/;
 
 boolean = boolean:('true' | 'false');
 null = null:('null');
