@@ -12,36 +12,36 @@ def test_unclosed_braces():
 
 
 @pytest.mark.parametrize(
-    ("s", "ident"),
+    "s",
     (
-        ("true", "true"),
-        ("false", "false"),
-        ("null", "null"),
-        ("true 123", "true"),
-        ("false 456", "false"),
-        ("null 789", "null"),
+        "true",
+        "false",
+        "null",
+        "true 123",
+        "false 456",
+        "null 789",
     ),
 )
-def test_keyword_node_names(s: str, ident: str):
-    errmsg = "^" + re.escape(f"Illegal bare identifier '{ident}'.") + "$"
+def test_keyword_node_names(s: str):
+    errmsg = "^" + re.escape(f"Failed to parse the document.") + "$"
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads(s)
 
 
 @pytest.mark.parametrize(
-    ("s", "ident"),
+    "s",
     (
-        ("(true)node", "true"),
-        ("(false)node", "false"),
-        ("(null)node", "null"),
-        ("node (true)123", "true"),
-        ("node (false)456", "false"),
-        ("node (null)789", "null"),
+        "(true)node",
+        "(false)node",
+        "(null)node",
+        "node (true)123",
+        "node (false)456",
+        "node (null)789",
     ),
 )
-def test_keyword_type_annotations(s: str, ident: str):
-    errmsg = "^" + re.escape(f"Illegal bare identifier '{ident}'.") + "$"
+def test_keyword_type_annotations(s: str):
+    errmsg = "^" + re.escape(f"Failed to parse the document.") + "$"
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads(s)

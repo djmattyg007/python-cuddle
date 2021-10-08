@@ -8,7 +8,7 @@ from tatsu.ast import AST
 
 from ._escaping import named_escapes
 from .exception import KDLDecodeError
-from .grammar import KdlParser
+from .grammar import KdlParser, KdlSemantics
 from .structure import Document, Node, NodeList
 
 
@@ -49,6 +49,34 @@ def _clean_nondecimal_number(raw_value: str) -> str:
     return sanitised_value
 
 
+class ParserSemanticActions(KdlSemantics):
+    def bare_identifier(self, ast):
+        bare = "".join(ast)
+        if bare in ("true", "false", "null"):
+            raise tatsu.exceptions.FailedSemantics(f"Illegal bare identifier {bare!r}.")
+        return bare
+
+    def decimal(self, ast):
+        flat_value = _strflatten(ast["decimal"])
+        dict.__setitem__(ast, "decimal", flat_value)
+        return ast
+
+    def hex(self, ast):
+        flat_value = _strflatten(ast["hex"])
+        dict.__setitem__(ast, "hex", flat_value)
+        return ast
+
+    def octal(self, ast):
+        flat_value = _strflatten(ast["octal"])
+        dict.__setitem__(ast, "octal", flat_value)
+        return ast
+
+    def binary(self, ast):
+        flat_value = _strflatten(ast["binary"])
+        dict.__setitem__(ast, "binary", flat_value)
+        return ast
+
+
 def _make_decoder(
     _null_factory: NullFactory,
     _bool_factory: BoolFactory,
@@ -76,10 +104,7 @@ def _make_decoder(
 
     def parse_identifier(ast: AST, /) -> str:
         if exists(ast, "bare"):
-            bare = "".join(ast["bare"])
-            if bare in ("true", "false", "null"):
-                raise KDLDecodeError(f"Illegal bare identifier {bare!r}.")
-            return bare
+            return ast["bare"]
 
         return parse_string(ast["string"])
 
@@ -101,22 +126,22 @@ def _make_decoder(
             retval = _bool_factory(val_type, sanitised_value)
             fallback_factory = lambda x: x == "true"
         elif exists(val, "hex"):
-            raw_value = _strflatten(val["hex"])
+            raw_value = val["hex"]
             sanitised_value = _clean_nondecimal_number(raw_value)
             retval = _int_factory(val_type, sanitised_value, 16)
             fallback_factory = partial(int, base=16)
         elif exists(val, "octal"):
-            raw_value = _strflatten(val["octal"])
+            raw_value = val["octal"]
             sanitised_value = _clean_nondecimal_number(raw_value)
             retval = _int_factory(val_type, sanitised_value, 8)
             fallback_factory = partial(int, base=8)
         elif exists(val, "binary"):
-            raw_value = _strflatten(val["binary"])
+            raw_value = val["binary"]
             sanitised_value = _clean_nondecimal_number(raw_value)
             retval = _int_factory(val_type, sanitised_value, 2)
             fallback_factory = partial(int, base=2)
         elif exists(val, "decimal"):
-            raw_value = _strflatten(val["decimal"])
+            raw_value = val["decimal"]
             sanitised_value = raw_value.replace("_", "")
             if "." in sanitised_value or "e" in sanitised_value or "E" in sanitised_value:
                 retval = _float_factory(val_type, sanitised_value)
@@ -317,7 +342,7 @@ class KDLDecoder:
 
     def decode(self, s: str, /) -> Document:
         try:
-            ast = ast_parser.parse(s)
+            ast = ast_parser.parse(s, semantics=ParserSemanticActions())
         except tatsu.exceptions.ParseException as e:
             raise KDLDecodeError("Failed to parse the document.") from e
 
