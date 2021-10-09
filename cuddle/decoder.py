@@ -208,12 +208,7 @@ def _make_decoder(
             sanitised_value = raw_value.replace("_", "")
             if "." in sanitised_value or "e" in sanitised_value or "E" in sanitised_value:
                 retval = _float_factory(val_type, sanitised_value)
-                if "e" in sanitised_value or "E" in sanitised_value:
-                    from decimal import Decimal
-
-                    fallback_factory = Decimal
-                else:
-                    fallback_factory = float
+                fallback_factory = float
             else:
                 retval = _int_factory(val_type, sanitised_value, 10)
                 fallback_factory = partial(int, base=10)
