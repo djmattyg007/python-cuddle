@@ -5,10 +5,11 @@ from typing import Any, Callable, List, Optional, Sequence
 
 import tatsu.exceptions
 from tatsu.ast import AST
+from tatsu.contexts import tatsumasu
 
 from ._escaping import named_escapes
 from .exception import KDLDecodeError
-from .grammar import KdlParser, KdlSemantics
+from .grammar import KdlParser as BaseKdlParser, KdlSemantics as BaseKdlSemantics
 from .structure import Document, Node, NodeList
 
 
@@ -18,15 +19,6 @@ BoolFactory = Callable[[FactoryTypeParam, str], Any]
 IntFactory = Callable[[FactoryTypeParam, str, int], Any]
 FloatFactory = Callable[[FactoryTypeParam, str], Any]
 StrFactory = Callable[[FactoryTypeParam, str], Any]
-
-
-ast_parser = KdlParser(whitespace="", parseinfo=False)
-
-exists: Callable[[AST, str], bool] = (
-    lambda ast, name: ast is not None and name in ast and ast[name] is not None
-)
-
-_blank = object()
 
 
 def _strflatten(iterable) -> str:
@@ -49,12 +41,74 @@ def _clean_nondecimal_number(raw_value: str) -> str:
     return sanitised_value
 
 
-class ParserSemanticActions(KdlSemantics):
+class KDLParser(BaseKdlParser):
+    @tatsumasu()
+    def _raw_string_hash_(self):
+        start_hash_depth = 0
+        peek_char = self._tokenizer.peek(start_hash_depth)
+        while peek_char == "#":
+            start_hash_depth += 1
+            peek_char = self._tokenizer.peek(start_hash_depth)
+        if start_hash_depth > 0:
+            self._token("#" * start_hash_depth)
+
+        if peek_char != '"':
+            self._error('malformed raw string')
+        self._token('"')
+
+        inside_raw_str = ""
+        while True:
+            peek_char = self._tokenizer.peek(len(inside_raw_str))
+            if peek_char is None:
+                self._token(inside_raw_str)
+                self._error("EOF while reading raw string")
+                continue  # This is only to satisfy the type-checker
+            elif peek_char != '"':
+                inside_raw_str += peek_char
+                continue
+
+            sub_inside_raw_str = '"'
+            end_hash_depth = 0
+            while True:
+                peek_char = self._tokenizer.peek(len(inside_raw_str) + len(sub_inside_raw_str))
+                if peek_char != "#":
+                    break
+                sub_inside_raw_str += "#"
+                end_hash_depth += 1
+
+            if end_hash_depth < start_hash_depth:
+                inside_raw_str += sub_inside_raw_str
+                continue
+
+            self._token(inside_raw_str)
+            self._token('"')
+            if end_hash_depth > 0:
+                self._token("#" * end_hash_depth)
+
+            if end_hash_depth == start_hash_depth:
+                return
+            else:
+                self._error("too many # characters when closing raw string")
+
+    @tatsumasu()
+    def _raw_string_quotes_(self):
+        self._error("total parsing failure")
+
+
+class KDLParserSemanticActions(BaseKdlSemantics):
     def bare_identifier(self, ast):
         bare = "".join(ast)
         if bare in ("true", "false", "null"):
             raise tatsu.exceptions.FailedSemantics(f"Illegal bare identifier {bare!r}.")
         return bare
+
+    def raw_string_hash(self, ast):
+        if len(ast) == 3:
+            return ast[1]
+        elif len(ast) == 5:
+            return ast[2]
+
+        raise tatsu.exceptions.FailedSemantics(f"Invalid raw string {ast!r}.")
 
     def decimal(self, ast):
         flat_value = _strflatten(ast["decimal"])
@@ -75,6 +129,15 @@ class ParserSemanticActions(KdlSemantics):
         flat_value = _strflatten(ast["binary"])
         dict.__setitem__(ast, "binary", flat_value)
         return ast
+
+
+ast_parser = KDLParser(whitespace="", semantics=KDLParserSemanticActions(), parseinfo=False)
+
+exists: Callable[[AST, str], bool] = (
+    lambda ast, name: ast is not None and name in ast and ast[name] is not None
+)
+
+_blank = object()
 
 
 def _make_decoder(
@@ -342,7 +405,7 @@ class KDLDecoder:
 
     def decode(self, s: str, /) -> Document:
         try:
-            ast = ast_parser.parse(s, semantics=ParserSemanticActions())
+            ast = ast_parser.parse(s)
         except tatsu.exceptions.ParseException as e:
             raise KDLDecodeError("Failed to parse the document.") from e
 
