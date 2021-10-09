@@ -9,7 +9,8 @@ from tatsu.contexts import tatsumasu
 
 from ._escaping import named_escapes
 from .exception import KDLDecodeError
-from .grammar import KdlParser as BaseKdlParser, KdlSemantics as BaseKdlSemantics
+from .grammar import KdlParser as BaseKdlParser
+from .grammar import KdlSemantics as BaseKdlSemantics
 from .structure import Document, Node, NodeList
 
 
@@ -53,7 +54,7 @@ class KDLParser(BaseKdlParser):
             self._token("#" * start_hash_depth)
 
         if peek_char != '"':
-            self._error('malformed raw string')
+            self._error("malformed raw string")
         self._token('"')
 
         inside_raw_str = ""
@@ -115,7 +116,7 @@ class KDLParserSemanticActions(BaseKdlSemantics):
         dict.__setitem__(ast, "decimal", flat_value)
         return ast
 
-    def hex(self, ast):
+    def hex(self, ast):  # noqa: A003
         flat_value = _strflatten(ast["hex"])
         dict.__setitem__(ast, "hex", flat_value)
         return ast

@@ -23,7 +23,7 @@ def test_unclosed_braces():
     ),
 )
 def test_keyword_node_names(s: str):
-    errmsg = "^" + re.escape(f"Failed to parse the document.") + "$"
+    errmsg = "^" + re.escape("Failed to parse the document.") + "$"
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads(s)
@@ -41,7 +41,7 @@ def test_keyword_node_names(s: str):
     ),
 )
 def test_keyword_type_annotations(s: str):
-    errmsg = "^" + re.escape(f"Failed to parse the document.") + "$"
+    errmsg = "^" + re.escape("Failed to parse the document.") + "$"
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads(s)
