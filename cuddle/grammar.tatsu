@@ -17,8 +17,8 @@ identifier = string:string | bare:bare_identifier;
 # The validation is therefore handled after parsing, in the decoder.
 bare_identifier = !(node_terminator ) @+:first_identifier_char {@+:rest_identifier_char};
 digit = /[0-9]/;
-first_identifier_char = !sign !digit !linespace !/[\\<(){};\[=,"]/ /./;
-rest_identifier_char = !linespace !/[\\();=,"]/ /./;
+first_identifier_char = !sign !digit !linespace !/[\/\\(){}<>;\[\]=,"]/ /./;
+rest_identifier_char = !linespace !/[\/\\(){}<>;\[\]=,"]/ /./;
 keyword = boolean | null;
 prop = name:identifier '=' value:value;
 value = [type:type] value:(number | string | keyword);

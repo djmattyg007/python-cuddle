@@ -293,7 +293,7 @@ class KdlParser(Parser):
         with self._ifnot():
             self._linespace_()
         with self._ifnot():
-            self._pattern('[\\\\<(){};\\[=,"]')
+            self._pattern('[\\/\\\\(){}<>;\\[\\]=,"]')
         self._pattern('.')
 
     @tatsumasu()
@@ -301,7 +301,7 @@ class KdlParser(Parser):
         with self._ifnot():
             self._linespace_()
         with self._ifnot():
-            self._pattern('[\\\\();=,"]')
+            self._pattern('[\\/\\\\(){}<>;\\[\\]=,"]')
         self._pattern('.')
 
     @tatsumasu()
