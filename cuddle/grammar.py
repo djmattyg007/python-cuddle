@@ -407,7 +407,7 @@ class KdlParser(Parser):
     def _escape_(self):  # noqa
         with self._choice():
             with self._option():
-                self._pattern('[\\\\\\/bfnrt]')
+                self._pattern('[\\\\\\/bfnrt"]')
                 self.name_last_node('named')
             with self._option():
                 self._token('u{')
@@ -416,7 +416,7 @@ class KdlParser(Parser):
                 self._token('}')
             self._error(
                 'expecting one of: '
-                "[\\\\/bfnrt] 'u{'"
+                '[\\\\/bfnrt"] \'u{\''
             )
         self._define(
             ['named', 'unichar'],
