@@ -372,10 +372,12 @@ def test_single_line_comment_either_side_of_node():
 
 
 def test_line_continuation():
-    doc = loads(r"""
+    doc = loads(
+        r"""
         my-node 1 2 \       // comments are ok after \
         3 4 rofl="copter"   // This is the actual end of the Node.
-    """)
+    """
+    )
     assert len(doc.nodes) == 1
     node = doc.nodes[0]
     _check_lens(node, arg_count=4, prop_count=1)
