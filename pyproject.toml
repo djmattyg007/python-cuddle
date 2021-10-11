@@ -33,34 +33,35 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
 ]
 include = ["cuddle/grammar.tatsu"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-tatsu = "^5.6.1"
 regex = "^2021.8.28"
+tatsu = "^5.6.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
 black = "^21.9b0"
-isort = "^5.9.3"
 flake8 = "^3.9.2"
 flake8-annotations-complexity = "^0.0.6"
-flake8-bugbear = "^21.9.1"
 flake8-black = "^0.2.3"
+flake8-breakpoint = "^1.1.0"
+flake8-bugbear = "^21.9.1"
+flake8-builtins = "^1.5.3"
+flake8-comprehensions = "^3.6.1"
+flake8-eradicate = "^1.1.0"
+flake8-expression-complexity = "^0.0.9"
 flake8-isort = "^4.0.0"
-pep8-naming = "^0.12.1"
 flake8-pytest-style = "^1.5.0"
 flake8-requirements = "^1.5.1"
-flake8-expression-complexity = "^0.0.9"
-flake8-comprehensions = "^3.6.1"
 invoke = "^1.6.0"
-pytest-cov = "^2.12.1"
-flake8-eradicate = "^1.1.0"
-flake8-breakpoint = "^1.1.0"
-flake8-builtins = "^1.5.3"
+isort = "^5.9.3"
 mypy = "^0.910"
+pep8-naming = "^0.12.1"
+pytest = "^6.2.5"
+pytest-cov = "^2.12.1"
 
 [tool.poetry.urls]
 "Source" = "https://github.com/djmattyg007/python-cuddle"
