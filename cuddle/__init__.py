@@ -29,6 +29,9 @@ from .exception import KDLDecodeError, KDLEncodeTypeError
 from .structure import Document, Node, NodeList
 
 
+__version__ = "1.0.0"
+
+
 def dumps(
     doc: Document,
     /,

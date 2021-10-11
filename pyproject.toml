@@ -17,7 +17,7 @@ lines_between_sections = 1
 
 [tool.poetry]
 name = "cuddle"
-version = "0.1.0"
+version = "1.0.0"
 description = "A Python library for the KDL Document Language."
 packages = [
     { include = "cuddle" },
