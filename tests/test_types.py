@@ -1,17 +1,45 @@
+import re
 from datetime import date, datetime, time
 from decimal import Decimal
 from ipaddress import IPv4Address, IPv6Address
-from re import compile as re_compile
 from urllib.parse import ParseResult as UrlParseResult
 from uuid import UUID
 
-from cuddle import Document, Node, NodeList, dumps, loads
+import pytest
+
+from cuddle import Document, KDLDecodeError, Node, NodeList, dumps, loads, plain_str_parser
 
 
 def _check_lens(node: Node, /, *, arg_count=0, prop_count=0, child_count=0) -> None:
     assert len(node.arguments) == arg_count
     assert len(node.properties) == prop_count
     assert len(node.children) == child_count
+
+
+@pytest.mark.parametrize(
+    "str_type",
+    (
+        "base64",
+        "date-time",
+        "datetime",
+        "date",
+        "time",
+        "decimal",
+        "ipv4",
+        "ipv6",
+        "regex",
+        "url",
+        "uuid",
+    ),
+)
+def test_decoding_plain_str(str_type: str):
+    doc = loads(f'node ({str_type})"abcdef"', parse_str=plain_str_parser)
+    assert isinstance(doc, Document)
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    assert node.name == "node"
+    _check_lens(node, arg_count=1)
+    assert node[0] == "abcdef"
 
 
 def test_encoding_bytes():
@@ -166,7 +194,7 @@ def test_decoding_ipv6address():
 
 
 def test_encoding_re():
-    val = re_compile(r"^abcd$")
+    val = re.compile(r"^abcd$")
     doc = Document(NodeList([Node("node", None, arguments=[val])]))
 
     assert dumps(doc) == 'node (regex)"^abcd$"\n'
@@ -179,7 +207,7 @@ def test_decoding_re():
         node = doc.nodes[0]
         assert node.name == "node"
         _check_lens(node, arg_count=1)
-        assert node[0] == re_compile(r"^abcd$")
+        assert node[0] == re.compile(r"^abcd$")
 
     raw = 'node (regex)"^abcd$"'
     _run(raw)
@@ -224,5 +252,67 @@ def test_decoding_uuid():
         assert node[0] == UUID("deadbeef-dead-beef-abcd-1234deadbeef")
 
     raw = 'node (uuid)"deadbeef-dead-beef-abcd-1234deadbeef"'
+    _run(raw)
+    _run(raw + "\n")
+
+
+@pytest.mark.parametrize(
+    "int_type", ("i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "isize", "usize")
+)
+def test_decoding_integer(int_type: str):
+    def _run(_raw: str):
+        doc = loads(_raw)
+        assert len(doc.nodes) == 1
+        node = doc.nodes[0]
+        assert node.name == "node"
+        _check_lens(node, arg_count=1)
+        assert isinstance(node[0], int)
+        assert node[0] == 42
+
+    raw = f"node ({int_type})42"
+    _run(raw)
+    _run(raw + "\n")
+
+
+def test_decoding_invalid_integer():
+    errmsg = "^" + re.escape("Failed to decode value '36' with type 'bool'.") + "$"
+    with pytest.raises(KDLDecodeError, match=errmsg):
+        loads("node (bool)36")
+
+
+@pytest.mark.parametrize("float_type", ("f32", "f64"))
+def test_decoding_float(float_type: str):
+    def _run(_raw: str):
+        doc = loads(_raw)
+        assert len(doc.nodes) == 1
+        node = doc.nodes[0]
+        assert node.name == "node"
+        _check_lens(node, arg_count=1)
+        assert isinstance(node[0], float)
+        assert node[0] == 1.23
+
+    raw = f"node ({float_type})1.23"
+    _run(raw)
+    _run(raw + "\n")
+
+
+def test_decoding_invalid_float():
+    errmsg = "^" + re.escape("Failed to decode value '3.142' with type 'bool'.") + "$"
+    with pytest.raises(KDLDecodeError, match=errmsg):
+        loads("node (bool)3.142")
+
+
+@pytest.mark.parametrize("decimal_type", ("decimal64", "decimal128"))
+def test_decoding_floatdecimal(decimal_type: str):
+    def _run(_raw: str):
+        doc = loads(_raw)
+        assert len(doc.nodes) == 1
+        node = doc.nodes[0]
+        assert node.name == "node"
+        _check_lens(node, arg_count=1)
+        assert isinstance(node[0], Decimal)
+        assert str(node[0]) == "0.0000123"
+
+    raw = f"node ({decimal_type})1.23E-5"
     _run(raw)
     _run(raw + "\n")

@@ -94,7 +94,8 @@ class KDLParser(BaseKdlParser):
 
     @tatsumasu()
     def _raw_string_quotes_(self):
-        self._error("total parsing failure")
+        # It shouldn't actually be possible to trigger this.
+        self._error("total parsing failure")  # pragma: no cover
 
 
 class KDLParserSemanticActions(BaseKdlSemantics):
@@ -110,7 +111,8 @@ class KDLParserSemanticActions(BaseKdlSemantics):
         elif len(ast) == 5:
             return ast[2]
 
-        raise tatsu.exceptions.FailedSemantics(f"Invalid raw string {ast!r}.")
+        # It shouldn't actually be possible to trigger this.
+        raise tatsu.exceptions.FailedSemantics(f"Invalid raw string {ast!r}.")  # pragma: no cover
 
     def decimal(self, ast):
         flat_value = _strflatten(ast["decimal"])
@@ -166,6 +168,11 @@ def _make_decoder(
                     val += named_escapes[esc["named"]]
                 else:
                     val += chr(int(esc["unichar"], 16))
+            else:
+                # It shouldn't actually be possible to trigger this.
+                raise KDLDecodeError(
+                    f"Improperly parsed string {ast['escstring']!r}."
+                )  # pragma: no cover
 
         return val
 
@@ -222,7 +229,8 @@ def _make_decoder(
             retval = _str_factory(val_type, sanitised_value)
             fallback_factory = lambda x: x
         else:
-            raise KDLDecodeError(f"Unknown AST node! Internal failure: {val!r}")
+            # It shouldn't actually be possible to trigger this.
+            raise KDLDecodeError(f"Unknown AST node! Internal failure: {val!r}")  # pragma: no cover
 
         if retval is not _blank:
             return retval

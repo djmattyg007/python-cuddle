@@ -52,3 +52,20 @@ def test_unknown_type():
 
     with pytest.raises(KDLDecodeError, match=errmsg):
         loads('node (unknown)"roflcopter"')
+
+
+@pytest.mark.parametrize(
+    "s",
+    (
+        'node r"eof',
+        'node r#"str"',
+        'node r##"str"#',
+        'node r"str"#',
+        'node r#"str"##',
+    ),
+)
+def test_invalid_raw_string(s: str):
+    errmsg = "^" + re.escape("Failed to parse the document.") + "$"
+
+    with pytest.raises(KDLDecodeError, match=errmsg):
+        loads(s)

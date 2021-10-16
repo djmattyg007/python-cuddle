@@ -1,6 +1,14 @@
 import pytest
 
-from cuddle import Node, dumps, loads
+from cuddle import (
+    Document,
+    Node,
+    default_bool_parser,
+    default_null_parser,
+    default_str_parser,
+    dumps,
+    loads,
+)
 
 
 def _check_lens(node: Node, /, *, arg_count=0, prop_count=0, child_count=0) -> None:
@@ -386,3 +394,39 @@ def test_line_continuation():
     assert node[2] == 3
     assert node[3] == 4
     assert node["rofl"] == "copter"
+
+
+def test_null_fallback_factory():
+    def null_parser(_val_type, val):
+        return default_null_parser("null", val)
+
+    doc = loads("node null", parse_null=null_parser, ignore_unknown_types=True)
+    assert isinstance(doc, Document)
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    _check_lens(node, arg_count=1)
+    assert node[0] is None
+
+
+def test_bool_fallback_factory():
+    def bool_parser(_val_type, val):
+        return default_bool_parser("bool", val)
+
+    doc = loads("node true", parse_bool=bool_parser, ignore_unknown_types=True)
+    assert isinstance(doc, Document)
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    _check_lens(node, arg_count=1)
+    assert node[0] is True
+
+
+def test_str_fallback_factory():
+    def str_parser(_val_type, val):
+        return default_str_parser("str", val)
+
+    doc = loads('node "str"', parse_str=str_parser, ignore_unknown_types=True)
+    assert isinstance(doc, Document)
+    assert len(doc.nodes) == 1
+    node = doc.nodes[0]
+    _check_lens(node, arg_count=1)
+    assert node[0] == "str"
