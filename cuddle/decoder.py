@@ -63,7 +63,8 @@ class KDLParser(BaseKdlParser):
             if peek_char is None:
                 self._token(inside_raw_str)
                 self._error("EOF while reading raw string")
-                continue  # This is only to satisfy the type-checker
+                # This is only to satisfy the type-checker
+                continue  # pragma: no cover
             elif peek_char != '"':
                 inside_raw_str += peek_char
                 continue

@@ -6,6 +6,26 @@ build-backend = "poetry.core.masonry.api"
 target-version = ["py39"]
 line-length = 100
 
+[tool.coverage.run]
+branch = true
+include = [
+    "cuddle/*",
+]
+omit = [
+    "cuddle/grammar.py",
+    "tests/*",
+    "tasks.py",
+]
+
+[tool.coverage.report]
+fail_under = 95
+exclude_lines = [
+    "pragma: no cover",
+    "noqa",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
+
 [tool.isort]
 profile = "black"
 multi_line_output = 3
