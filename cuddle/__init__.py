@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import partial
 from os import PathLike
-from typing import IO, Optional, Union
+from typing import IO, Optional, Type, Union
 
 from .decoder import (
     BoolFactory,
@@ -82,6 +82,8 @@ def loads(
     parse_float: Optional[FloatFactory] = None,
     parse_str: Optional[StrFactory] = None,
     ignore_unknown_types: bool = False,
+    node_factory: Type[Node] = Node,
+    node_list_factory: Type[NodeList] = NodeList,
 ) -> Document:
     if isinstance(s, bytes):
         s = s.decode("utf-8")
@@ -96,6 +98,8 @@ def loads(
         parse_float=parse_float,
         parse_str=parse_str,
         ignore_unknown_types=ignore_unknown_types,
+        node_factory=node_factory,
+        node_list_factory=node_list_factory,
     )
     return decoder.decode(s)
 
@@ -111,6 +115,8 @@ def load(
     parse_float: Optional[FloatFactory] = None,
     parse_str: Optional[StrFactory] = None,
     ignore_unknown_types: bool = False,
+    node_factory: Type[Node] = Node,
+    node_list_factory: Type[NodeList] = NodeList,
 ) -> Document:
     _loads = partial(
         loads,
@@ -121,6 +127,8 @@ def load(
         parse_float=parse_float,
         parse_str=parse_str,
         ignore_unknown_types=ignore_unknown_types,
+        node_factory=node_factory,
+        node_list_factory=node_list_factory,
     )
 
     if isinstance(fp, PathLike):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, List, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence, Type
 
 import tatsu.exceptions
 from tatsu.ast import AST
@@ -148,6 +148,8 @@ def _make_decoder(
     _float_factory: FloatFactory,
     _str_factory: StrFactory,
     _ignore_unknown_types: bool,
+    _node_factory: Type[Node],
+    _node_list_factory: Type[NodeList],
 ):
     def parse_string(ast: AST, /):
         if not exists(ast, "escstring"):
@@ -263,7 +265,7 @@ def _make_decoder(
         if exists(ast, "type"):
             node_type = parse_identifier(ast["type"])
 
-        return Node(name, node_type, arguments=args, properties=props, children=NodeList(children))
+        return _node_factory(name, node_type, arguments=args, properties=props, children=_node_list_factory(children))
 
     def parse_nodes(ast: Sequence[AST], /) -> List[Node]:
         # TODO: Figure out why empty documents are so strangely handled
@@ -391,6 +393,8 @@ class KDLDecoder:
         parse_float: Optional[FloatFactory] = None,
         parse_str: Optional[StrFactory] = None,
         ignore_unknown_types: bool = False,
+        node_factory: Type[Node] = Node,
+        node_list_factory: Type[NodeList] = NodeList,
     ):
         self.parse_null: NullFactory = parse_null or default_null_parser
         self.parse_bool: BoolFactory = parse_bool or default_bool_parser
@@ -398,6 +402,8 @@ class KDLDecoder:
         self.parse_float: FloatFactory = parse_float or default_float_parser
         self.parse_str: StrFactory = parse_str or default_str_parser
         self.ignore_unknown_types = ignore_unknown_types
+        self.node_factory = node_factory
+        self.node_list_factory = node_list_factory
 
     def decode(self, s: str, /) -> Document:
         try:
@@ -412,9 +418,11 @@ class KDLDecoder:
             self.parse_float,
             self.parse_str,
             self.ignore_unknown_types,
+            self.node_factory,
+            self.node_list_factory,
         )
 
-        return Document(NodeList(decoder(ast)))
+        return Document(self.node_list_factory(decoder(ast)))
 
 
 __all__ = (
