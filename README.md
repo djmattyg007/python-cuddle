@@ -4,7 +4,9 @@ A Python library for the [KDL Document Language](https://github.com/kdl-org/kdl)
 
 ## Install
 
-    pip install cuddle
+```shell
+pip install cuddle
+```
 
 Cuddle supports Python 3.9 and above. 
 
@@ -47,16 +49,20 @@ print(dumps(loaded_doc))
 print()
 
 # Creating documents from scratch is a bit verbose
-doc = Document(NodeList([]))
 nodes = []
-child_node = Node("complex name here!", [], {}, NodeList([]))
+child_node = Node("complex name here!", None)
 nodes.append(
-    Node("simple-name", [123], {}, NodeList([child_node]))
+    Node("simple-name", None, arguments=[123], children=[child_node])
+)
+nodes.append(
+    Node("second-node", None, properties={"key": "value"})
 )
 node_list = NodeList(nodes)
 doc = Document(node_list)
 print(dumps(doc))
 ```
+
+The output:
 
 ```
 title "Some title"
@@ -69,10 +75,9 @@ foo bar=true quux=false "baz" 1 2 3
 simple-name 123 {
   "complex name here!"
 }
+second-node key="value"
 ```
 
 ## License
 
-The code is available under the [MIT license](LICENSE). The example above is
-made available from https://github.com/kdl-org/kdl under
-[Creative Commons Attribution-ShareAlike 4.0 International](https://github.com/kdl-org/kdl/blob/main/LICENSE.md).
+The code is available under the [MIT license](LICENSE.txt).
