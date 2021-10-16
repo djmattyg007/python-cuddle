@@ -265,7 +265,9 @@ def _make_decoder(
         if exists(ast, "type"):
             node_type = parse_identifier(ast["type"])
 
-        return _node_factory(name, node_type, arguments=args, properties=props, children=_node_list_factory(children))
+        return _node_factory(
+            name, node_type, arguments=args, properties=props, children=_node_list_factory(children)
+        )
 
     def parse_nodes(ast: Sequence[AST], /) -> List[Node]:
         # TODO: Figure out why empty documents are so strangely handled
