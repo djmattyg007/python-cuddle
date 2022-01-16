@@ -1,11 +1,19 @@
 # python-cuddle
 
+[![CI](https://github.com/djmattyg007/python-cuddle/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/djmattyg007/python-cuddle/actions/workflows/ci.yml)
+
 A Python library for the [KDL Document Language](https://github.com/kdl-org/kdl).
 
 ## Install
 
 ```shell
 pip install cuddle
+```
+
+Or if you're using poetry:
+
+```shell
+poetry add cuddle
 ```
 
 Cuddle supports Python 3.9 and above. 
