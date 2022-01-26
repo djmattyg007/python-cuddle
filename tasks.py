@@ -11,6 +11,8 @@ if in_ci:
 else:
     pty = util.isatty(sys.stdout) and util.isatty(sys.stderr)
 
+in_pkg = os.environ.get("PACKAGING") == "true"
+
 
 @task
 def reformat(c):
@@ -25,14 +27,22 @@ def lint(c):
 
 @task
 def test(c, verbose=False, onefile=""):
-    pytest_args = ["pytest", "--strict-config", "--cov=cuddle", "--cov-report=term-missing"]
-    if in_ci:
-        pytest_args.extend(("--cov-report=xml", "--strict-markers"))
-    else:
-        pytest_args.append("--cov-report=html")
+    pytest_args = ["pytest", "--strict-config"]
+
+    if in_ci or in_pkg:
+        pytest_args.append("--strict-markers")
+
+    if not in_pkg:
+        pytest_args.extend(("--cov=cuddle", "--cov-report=term-missing"))
+        if in_ci:
+            pytest_args.append("--cov-report=xml")
+        else:
+            pytest_args.append("--cov-report=html")
 
     if verbose:
         pytest_args.append("-vv")
+    elif in_pkg:
+        pytest_args.append("-q")
     else:
         pytest_args.append("-v")
 
