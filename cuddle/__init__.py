@@ -29,7 +29,7 @@ from .exception import KDLDecodeError, KDLEncodeTypeError
 from .structure import Document, Node, NodeList
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 
 def dumps(

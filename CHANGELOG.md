@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.4 - 2022-01-26
+
+- Improvements for packaging.
+
 ## v1.0.3 - 2021-10-16
 
 - Added changelog to PyPI package.
