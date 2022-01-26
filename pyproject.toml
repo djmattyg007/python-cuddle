@@ -56,11 +56,12 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 include = [
-    "CHANGELOG.md",
-    "tasks.py",
-    "pytest.ini",
-    "cuddle/grammar.tatsu",
-    "cuddle/py.typed",
+    { path = "CHANGELOG.md", format = "sdist" },
+    { path = "tasks.py", format = "sdist" },
+    { path = "pytest.ini", format = "sdist" },
+    { path = "tests", format = "sdist" },
+    { path = "cuddle/grammar.tatsu" },
+    { path = "cuddle/py.typed" },
 ]
 
 [tool.poetry.dependencies]
