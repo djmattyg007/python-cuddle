@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.6 - 2022-01-26
+
+- Introduce fix for BC break in Tatsu 5.7
+- More packaging improvements.
+
 ## v1.0.5 - 2022-01-26
 
 - More packaging improvements.
