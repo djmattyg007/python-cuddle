@@ -69,7 +69,7 @@ regex = "^2021.8.28"
 tatsu = "^5.6.1"
 
 [tool.poetry.dev-dependencies]
-black = "^21.9b0"
+black = "^21.12b0"
 flake8 = "^3.9.2"
 flake8-annotations-complexity = "^0.0.6"
 flake8-black = "^0.2.3"
