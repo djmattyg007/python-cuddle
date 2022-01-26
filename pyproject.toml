@@ -57,6 +57,8 @@ classifiers = [
 ]
 include = [
     "CHANGELOG.md",
+    "tasks.py",
+    "pytest.ini",
     "cuddle/grammar.tatsu",
     "cuddle/py.typed",
 ]
