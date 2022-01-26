@@ -136,6 +136,12 @@ class KDLParserSemanticActions(BaseKdlSemantics):
 
 
 ast_parser = KDLParser(whitespace="", semantics=KDLParserSemanticActions(), parseinfo=False)
+ast_parser_config = getattr(ast_parser, "config", None)
+if ast_parser_config:
+    # Work around BC break in Tatsu 5.7
+    ast_parser_config.comments_re = None
+    ast_parser_config.eol_comments_re = None
+
 
 exists: Callable[[AST, str], bool] = (
     lambda ast, name: ast is not None and name in ast and ast[name] is not None
