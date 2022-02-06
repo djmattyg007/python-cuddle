@@ -36,7 +36,7 @@ jobs:
         uses: "actions/cache@v2"
         with:
           path: "~/.local/share/pypoetry"
-          key: "poetry-0" # Increment to reset cache
+          key: "poetry-${{ matrix.python }}-0" # Increment to reset cache
 
       - name: "Install Poetry"
         uses: "snok/install-poetry@v1"
@@ -50,7 +50,7 @@ jobs:
         uses: "actions/cache@v2"
         with:
           path: ".venv"
-          key: "venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}"
+          key: "venv-${{ runner.os }}-${{ matrix.python }}-${{ hashFiles('**/poetry.lock') }}"
 
       - name: "Install dependencies"
         if: "steps.cached-poetry-dependencies.outputs.cache-hit != 'true'"
