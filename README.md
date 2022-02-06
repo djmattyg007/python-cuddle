@@ -1,6 +1,7 @@
 # python-cuddle
 
 [![CI](https://github.com/djmattyg007/python-cuddle/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/djmattyg007/python-cuddle/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/cuddle.svg)](https://pypi.org/project/cuddle)
 
 A Python library for the [KDL Document Language](https://github.com/kdl-org/kdl).
 
